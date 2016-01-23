@@ -1,0 +1,42 @@
+{
+  "name": "chrome-html5-toolkit",
+  "version": "1.0.0",
+  "description": "Toolkit Inspection",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/truonguyen1/chrome-html5-toolkit.git"
+  },
+  "author": "Truong Nguyen",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/truonguyen1/chrome-html5-toolkit/issues"
+  },
+  "devDependencies": {
+    "babel-core": "^6.4.5",
+    "babel-eslint": "^4.1.3",
+    "babel-loader": "^6.2.1",
+    "babel-preset-es2015": "^6.3.13",
+    "babel-preset-react": "^6.3.13",
+    "babel-preset-stage-0": "^6.0.15",
+    "css-loader": "^0.23.1",
+    "eslint-plugin-react": "^3.6.2",
+    "file-loader": "^0.8.5",
+    "less": "^2.5.3",
+    "less-loader": "^2.2.2",
+    "react-hot-loader": "^1.3.0",
+    "react-redux": "^4.0.6",
+    "redux": "^3.0.5",
+    "style-loader": "^0.13.0",
+    "url-loader": "^0.5.7",
+    "webpack": "^1.12.2"
+  },
+  "dependencies": {
+    "react": "^0.14.0",
+    "react-dom": "^0.14.0"
+  },
+  "homepage": "https://github.com/truonguyen1/chrome-html5-toolkit#readme"
+}
