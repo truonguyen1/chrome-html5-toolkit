@@ -3,8 +3,11 @@ var webpack = require('webpack');
 
 module.exports = {
   entry: {
-    'index':'./src/index',
-    'background':'./src/background'
+    'devtool':'./src/devtool',
+    'background':'./src/background',
+    'contentscript':'./src/contentscript',
+    'injectedscript':'./src/injectedscript',
+    'manifest':'file?name=[name].[ext]!./src/manifest.json'
   },
   output: {
     path: path.join(__dirname, 'dist'),
