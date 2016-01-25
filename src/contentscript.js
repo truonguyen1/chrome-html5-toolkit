@@ -5,16 +5,7 @@
  *
  */
 import * as actions from './constants/actions';
+import {createContentScriptStore} from './stores/contenscriptstore';
+import contentScript from './reducers/contentscript';
 
-chrome.runtime.onMessage.addListener(
-    function(request, sender, sendResponse) {
-        switch( request.type){
-            case actions.PANEL_STATE:
-                var state = request.message;
-                console.log("Received ",state);
-                break;
-            default:
-                break;
-        }
-    }
-);
+createContentScriptStore(contentScript);

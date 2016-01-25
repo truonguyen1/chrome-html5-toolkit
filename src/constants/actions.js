@@ -8,6 +8,8 @@ export const SEND_TO_CONTENT_SCRIPT = 'SEND_TO_CONTENT_SCRIPT';
 
 export const LOG_TYPE = 'LOG';
 
+export const HANDLE_MESSAGE = 'HANDLE_MESSAGE';
+
 /**
  * Create set inspect mode action
  * @param val
@@ -28,6 +30,13 @@ export function setInspectMode(val){
 export function sendToContentScript(message){
     return {
         'type': SEND_TO_CONTENT_SCRIPT,
+        'message':message
+    }
+}
+
+export function handleMessage(message){
+    return {
+        'type': HANDLE_MESSAGE,
         'message':message
     }
 }
