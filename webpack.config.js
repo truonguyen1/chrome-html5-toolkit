@@ -7,6 +7,7 @@ module.exports = {
     'background':'./src/background',
     'contentscript':'./src/contentscript',
     'injectedscript':'./src/injectedscript',
+    'panel':'./src/panel',
     'manifest':'file?name=[name].[ext]!./src/manifest.json'
   },
   output: {
