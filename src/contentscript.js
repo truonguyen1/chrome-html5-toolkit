@@ -4,10 +4,17 @@
  * Can send and receive message to background page
  *
  */
+import * as actions from './panel/constants/actions';
+
 chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
-        if( request.message === "clicked_browser_action" ) {
-            debugger;
+        switch( request.type){
+            case actions.SEND_INSPECT_MODE:
+                var mode = request.content.inspectMode;
+                console.log("Received ",request);
+                break;
+            default:
+                break;
         }
     }
 );
