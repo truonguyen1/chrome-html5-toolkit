@@ -4,11 +4,37 @@
 
 import {createStore, applyMiddleware} from 'redux';
 import * as actions from './../constants/actions';
-
+import jQ from 'jquery';
 let store = null;
+
+
+window.addEventListener("message", function(event) {
+    // We only accept messages from ourselves
+    if (event.source != window)
+        return;
+
+    if (event.data) {
+        console.log("Content script received: ", event.data);
+        //let port = chrome.runtime.connect();
+        //port.postMessage(event.data.text);
+    }
+}, false);
+
 chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
+        let jQuery = jQ;
         if(store==null)return;
+        var message = request['message'];
+        console.log("Received ",message);
+        switch( message.type){
+            case actions.PANEL_STATE:
+                let state = message.message;
+                let inspectMode =  state.modes.inspectMode;
+                store.dispatch(actions.setInspectMode(inspectMode));
+                break;
+            default:
+                break;
+        }
         store.dispatch(actions.handleMessage(request));
     }
 );

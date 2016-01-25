@@ -3,20 +3,12 @@
  */
 
 import * as actions from './../constants/actions';
-let _default = {};
+let _default = {inspectMode:false};
 export default function contentScript(prevState =_default,action){
     switch(action.type){
-        case actions.HANDLE_MESSAGE:
-            var message = action['message'];
-            switch( message.type){
-                case actions.PANEL_STATE:
-                    var state = message.message;
-                    console.log("Received ",state);
-                    break;
-                default:
-                    break;
-            }
-            return prevState;
+        case actions.SET_INSPECT_MODE:
+            var inspectMode = action['value'];
+            return prevState.inspectMode = inspectMode;
         default:
             return prevState;
 

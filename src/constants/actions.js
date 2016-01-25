@@ -40,3 +40,11 @@ export function handleMessage(message){
         'message':message
     }
 }
+
+export const SHOW_CHILDREN = 'SHOW_CHILDREN';
+export function showChildren(bool){
+    return {
+        'type': SHOW_CHILDREN,
+        'value':bool
+    }
+}
