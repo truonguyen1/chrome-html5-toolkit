@@ -7,7 +7,7 @@
  * Have no access to window
  */
 
-import * as actions from './panel/constants/actions';
+import * as actions from './constants/actions';
 
 chrome.browserAction.onClicked.addListener(function(tab) {
     //chrome.tabs.sendMessage(tab.id, {"message": "clicked_browser_action"});
@@ -18,14 +18,11 @@ var devToolsListener = function(message, sender, sendResponse) {
     var type = message.type;
     switch(type){
         case actions.LOG_TYPE:
-            console.log(message['content']);
+            console.log(message['message']);
             break;
         case actions.SEND_TO_CONTENT_SCRIPT:
-            var content = message['content'];
-            if(content==null)return;
-            var tabId = content.tabId;
-            var message = content.message;
-            chrome.tabs.sendMessage(tabId, message);
+            if(message==null)return;
+            chrome.tabs.sendMessage(message.tabId, message.message);
             break;
         default:
             break;
