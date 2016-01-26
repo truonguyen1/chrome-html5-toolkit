@@ -42,9 +42,28 @@ export function handleMessage(message){
 }
 
 export const TOGGLE_CHILDREN = 'TOGGLE_CHILDREN';
-export function toggleChildren(props){
+export function toggleChildren(id,value){
     return {
         'type': TOGGLE_CHILDREN,
-        'value':props
+        'id':id,
+        'visible':value
+    }
+}
+
+
+export const SELECT_NODE = 'SELECT_NODE';
+export function selectNode(id,selection){
+    return {
+        'type': SELECT_NODE,
+        'id':id,
+        'selection':selection
+    }
+}
+
+export const MOVE_SELECTION = 'MOVE_SELECTION';
+export function moveSelection(isUp){
+    return {
+        'type': MOVE_SELECTION,
+        'isUp':isUp
     }
 }

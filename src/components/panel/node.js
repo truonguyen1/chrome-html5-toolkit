@@ -16,11 +16,15 @@ export default class Node extends  Component{
         )
     }
     renderChildren(){
-        const {expanded=false,children=[],toggleChildren} = this.props;
+        const {expanded=false,children=[],toggleChildren,selectNode} = this.props;
         if(children.length==0 || !expanded)return '';
         var arr = [];
         for(var i=0;i<children.length;i++){
-            arr.push(<Node key={children[i].id} {...children[i]} toggleChildren={toggleChildren}></Node>)
+            arr.push(<Node
+                key={children[i].id} {...children[i]}
+                selectNode={selectNode}
+                toggleChildren={toggleChildren}
+            ></Node>);
         }
         return (
             <div className={expanded?'nodes nodes-visible':'nodes'}>
@@ -29,11 +33,14 @@ export default class Node extends  Component{
         );
     }
     render(){
-        const {name} = this.props;
-
+        const {name,selectNode,id,selected} = this.props;
+        let headerClass = 'node-header';
+        if(selected){
+            headerClass +=' node-selected';
+        }
         return (
             <div className="node">
-                <div className="node-header">
+                <div className={headerClass} onClick={()=>selectNode(id)}>
                     <div className="node-show-children-action">
                         {this.renderExpandIcon()}
                     </div>

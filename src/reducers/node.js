@@ -20,29 +20,84 @@ let _defaults = {
     ]
 }
 
-function traverseNode(node,callBack){
-    var stop = callBack(node);
+function traverseNode(parent,node,callBack,index){
+    var stop = callBack(node,parent,index);
     if(stop)return true;
     if(node.children==null || node.children.length<=0)return;
     for(var i=0;i<node.children.length;i++){
-        stop = traverseNode(node.children[i],callBack);
+        stop = traverseNode(node,node.children[i],callBack,i);
         if(stop)return true;
     }
 }
 
+function traverseNodeById(root,id,callback){
+    traverseNode(null,root,(node,parent,index)=>{
+        if(node.id===id){
+            callback(node,parent,index);
+            return true;
+        }
+        return false;
+    })
+};
+
 export default function node(prevState = _defaults,action){
     switch(action.type){
-        case actions.TOGGLE_CHILDREN:
-            var copy = Object.assign({}, prevState);
-            var id = action['value'];
-            traverseNode(copy,function(node){
-                if(node.id===id){
-                    node.expanded = !node.expanded;
-                    return true;
+        case actions.MOVE_SELECTION:
+        {
+            let copy = Object.assign({}, prevState);
+            var isUp = action['isUp'];
+            //TODO: HANDLE SELECTION UP AND DOWN
+            var selection = null;
+            traverseNode(null,copy, (node, parent, index)=> {
+                if(node.selected==false)return;
+                if (isUp) {
+                    if (index == null) {
+                        return;
+                    }
+                    node.selected =false;
+                    if (index == 0) {
+                        parent.selected = true;
+                        return;
+                    }
+                    var sibling = parent.children[index - 1];
+                    if (sibling == null)return;
+                    parent.children[index - 1].selected = true;
+                } else {
+                    if (node.expanded == false && parent == null)return;
+                    node.selected =false;
+                    if (node.expanded == true) {
+                        var child = node.children[0];
+                        if (child == null)return;
+                        node.children[0].selected = true;
+                        return;
+                    }
+                    var sibling = parent.children[index + 1];
+                    if (sibling == null)return;
+                    sibling.selected = true;
                 }
-                return false;
+            })
+            return copy;
+        }
+        case actions.SELECT_NODE:
+        {
+            let copy = Object.assign({}, prevState);
+            let id = action['id'];
+            let selection = action['selection'];
+            traverseNode(null,copy, function (node) {
+                if(node.id===id) node.selected = true;
+                else node.selected = false;
             });
             return copy;
+        }
+        case actions.TOGGLE_CHILDREN:
+        {
+            var copy = Object.assign({}, prevState);
+            var id = action['id'];
+            traverseNodeById(copy, id, function (node) {
+                node.expanded = action['visible'] == null ? !node.expanded : action['visible'];
+            });
+            return copy;
+        }
         default:
             return prevState;
             break;
