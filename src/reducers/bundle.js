@@ -3,7 +3,7 @@
  */
 import { combineReducers } from 'redux';
 import modes from './modes';
-import treeNodes from './treenodes';
+import treeNodes from './node';
 import messages from './messages';
 
 export default combineReducers({
