@@ -23,7 +23,7 @@ class AppContainer extends  Component{
 
         return(
             <div className="panel-container">
-                <div className="panel-header shadow-bottom">
+                <div className="panel-header">
                     <Toolbar
                         toggleInspect={
                             ()=>{
