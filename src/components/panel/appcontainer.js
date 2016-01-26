@@ -36,8 +36,8 @@ class AppContainer extends  Component{
                 <div className="panel-body">
                     <div>
                         <div className="panel-object-view">
-                            <Node {...root} toggleChildren={(node)=>{
-                                dispatch(actions.showChildren(!node.expanded))
+                            <Node {...root} toggleChildren={(nodeid)=>{
+                                dispatch(actions.toggleChildren(nodeid))
                             }}></Node>
                         </div>
                         <div className="panel-spliter"

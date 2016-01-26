@@ -41,10 +41,10 @@ export function handleMessage(message){
     }
 }
 
-export const SHOW_CHILDREN = 'SHOW_CHILDREN';
-export function showChildren(bool){
+export const TOGGLE_CHILDREN = 'TOGGLE_CHILDREN';
+export function toggleChildren(props){
     return {
-        'type': SHOW_CHILDREN,
-        'value':bool
+        'type': TOGGLE_CHILDREN,
+        'value':props
     }
 }
