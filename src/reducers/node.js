@@ -42,6 +42,17 @@ function traverseNodeById(root,id,callback){
 
 export default function node(prevState = _defaults,action){
     switch(action.type){
+        case actions.ADD_NODE:{
+            let parentId = action['parentid'];
+            if(parentId==null){
+                return action['node'];
+            }
+            let copy = Object.assign({}, prevState);
+            traverseNodeById(copy,parentId,node=>{
+                node.children.push(action['node']);
+            })
+            return copy;
+        };
         case actions.TOGGLE_SELECTED_CHILDREN:{
             let copy = Object.assign({}, prevState);
             let visible = action.visible;

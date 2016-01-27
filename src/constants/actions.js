@@ -50,6 +50,15 @@ export function toggleChildren(id,value){
     }
 }
 
+export const ADD_NODE = 'ADD_NODE';
+export function addNode(parentId,node){
+    return {
+        'type': ADD_NODE,
+        'parentid':parentId,
+        'node':node
+    }
+}
+
 
 export const SELECT_NODE = 'SELECT_NODE';
 export function selectNode(id,selection){
@@ -75,3 +84,28 @@ export function toggleSelectedChildren(bool){
         'visible':bool
     }
 }
+export const SEND_TO_EXTENSION = 'SEND_TO_EXTENSION';
+export function sendToExtension(messsage){
+    return {
+        'type': SEND_TO_EXTENSION,
+        'message':messsage
+    }
+}
+
+export const ESTABLISH_CONNECTION_WITH_BACKGROUND = 'ESTABLISH_CONNECTION_WITH_BACKGROUND';
+export const HAND_SHAKE = 'HAND_SHAKE';
+export function createConnectionWithBackground(name,onMessageCallback){
+    return {
+        'type': ESTABLISH_CONNECTION_WITH_BACKGROUND,
+        'name':name,
+        'onMessageCallback':onMessageCallback
+    }
+}
+export function relayMessage(message){
+    return {
+        'type': message.type,
+        'message':message.message
+    }
+}
+
+

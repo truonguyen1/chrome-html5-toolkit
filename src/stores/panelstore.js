@@ -4,7 +4,7 @@
 
 import {createStore, applyMiddleware} from 'redux';
 import * as actions from './../constants/actions';
-
+let _store =null;
 function sendStateChange({ getState,dispatch }) {
     return (next) => (action) => {
         // Call the next dispatch method in the middleware chain.
@@ -26,7 +26,13 @@ function sendStateChange({ getState,dispatch }) {
 }
 
 export function createPanelStore(reducer){
-    let createStoreWithMiddleware = applyMiddleware(sendStateChange)(createStore)
-    let store = createStoreWithMiddleware(reducer);
-    return store;
+    let createStoreWithMiddleware = applyMiddleware(sendStateChange)(createStore);
+    if(_store==null){
+        _store = createStoreWithMiddleware(reducer);
+        _store.dispatch(actions.createConnectionWithBackground('panel',function(message){
+            _store.dispatch(message);
+        }));
+    }
+
+    return _store;
 }

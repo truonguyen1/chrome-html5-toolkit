@@ -9,6 +9,10 @@ export default function contentScript(prevState =_default,action){
         case actions.SET_INSPECT_MODE:
             var inspectMode = action['value'];
             return prevState.inspectMode = inspectMode;
+        case actions.SEND_TO_EXTENSION:
+            chrome.runtime.sendMessage(action['message'], function() {
+            });
+            return prevState;
         default:
             return prevState;
 

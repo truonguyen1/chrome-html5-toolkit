@@ -15,8 +15,7 @@ window.addEventListener("message", function(event) {
 
     if (event.data) {
         console.log("Content script received: ", event.data);
-        //let port = chrome.runtime.connect();
-        //port.postMessage(event.data.text);
+        store.dispatch(actions.sendToExtension(event.data));
     }
 }, false);
 

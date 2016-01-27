@@ -5,7 +5,8 @@ import { combineReducers } from 'redux';
 import modes from './modes';
 import treeNodes from './node';
 import messages from './messages';
+import connections from './connections'
 
 export default combineReducers({
-    modes,treeNodes,messages
+    modes,treeNodes,messages,connections
 });
