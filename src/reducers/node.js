@@ -42,6 +42,22 @@ function traverseNodeById(root,id,callback){
 
 export default function node(prevState = _defaults,action){
     switch(action.type){
+        case actions.TOGGLE_SELECTED_CHILDREN:{
+            let copy = Object.assign({}, prevState);
+            let visible = action.visible;
+            traverseNode(null,copy,(node)=>{
+                if(node.selected){
+                    node.expanded = visible;
+                    if(visible && node.children && node.children.length>0){
+                        node.selected = false;
+                        node.children[0].selected = true;
+                    }
+                    return true;
+                }
+                return false;
+            });
+            return copy;
+        }
         case actions.MOVE_SELECTION:
         {
             let copy = Object.assign({}, prevState);
@@ -52,29 +68,31 @@ export default function node(prevState = _defaults,action){
                 if(node.selected==false)return;
                 if (isUp) {
                     if (index == null) {
-                        return;
+                        return true;
                     }
                     node.selected =false;
                     if (index == 0) {
                         parent.selected = true;
-                        return;
+                        return true;
                     }
                     var sibling = parent.children[index - 1];
                     if (sibling == null)return;
                     parent.children[index - 1].selected = true;
-                } else {
-                    if (node.expanded == false && parent == null)return;
-                    node.selected =false;
-                    if (node.expanded == true) {
-                        var child = node.children[0];
-                        if (child == null)return;
-                        node.children[0].selected = true;
-                        return;
-                    }
-                    var sibling = parent.children[index + 1];
-                    if (sibling == null)return;
-                    sibling.selected = true;
+                    return true;
                 }
+                if (node.expanded == false && parent == null)return;
+                node.selected =false;
+                if (node.expanded == true) {
+                    var child = node.children[0];
+                    if (child == null)return;
+                    node.children[0].selected = true;
+                    return true;
+                }
+                var sibling = parent.children[index + 1];
+                if (sibling == null)return;
+                parent.children[index + 1].selected = true;
+                return true;
+
             })
             return copy;
         }

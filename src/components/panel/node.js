@@ -5,12 +5,22 @@ import React,{Component,PropTypes} from 'react';
 import Css from './node.less';
 
 export default class Node extends  Component{
+
+    handleExpanseClick(){
+        const{id,toggleChildren} = this.props;
+        toggleChildren(id);
+    }
+
+    handleHeaderClick(evt){
+        const {id,selectNode} = this.props;
+        selectNode(id);
+    }
     renderExpandIcon(){
-        const {expanded=false,children=[],id,toggleChildren} = this.props;
+        const {expanded=false,children=[]} = this.props;
         if(children.length==0)return '';
         let iconClass = expanded?'glyphicon glyphicon-chevron-down':'glyphicon glyphicon-chevron-up';
         return  (
-            <a className="btn btn-link node-show-children-btn" onClick={()=>toggleChildren(id)}>
+            <a className="btn btn-link node-show-children-btn" onClick={this.handleExpanseClick.bind(this)}>
                 <span className={iconClass}></span>
             </a>
         )
@@ -33,14 +43,14 @@ export default class Node extends  Component{
         );
     }
     render(){
-        const {name,selectNode,id,selected} = this.props;
+        const {name,selected} = this.props;
         let headerClass = 'node-header';
         if(selected){
             headerClass +=' node-selected';
         }
         return (
             <div className="node">
-                <div className={headerClass} onClick={()=>selectNode(id)}>
+                <div className={headerClass} onClick={this.handleHeaderClick.bind(this)}>
                     <div className="node-show-children-action">
                         {this.renderExpandIcon()}
                     </div>

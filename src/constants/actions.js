@@ -67,3 +67,11 @@ export function moveSelection(isUp){
         'isUp':isUp
     }
 }
+
+export const TOGGLE_SELECTED_CHILDREN = 'TOGGLE_SELECTED_CHILDREN';
+export function toggleSelectedChildren(bool){
+    return {
+        'type': TOGGLE_SELECTED_CHILDREN,
+        'visible':bool
+    }
+}

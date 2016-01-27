@@ -29,16 +29,16 @@ class AppContainer extends  Component{
         let code = evt.keyCode;
         switch(code){
             case 37://Left
-                //dispatch(actions.toggleChildren(false));
+                dispatch(actions.toggleSelectedChildren(false));
                 break;
             case 38://Up
-                //dispatch(actions.moveSelection(true));
+                dispatch(actions.moveSelection(true));
                 break;
             case 39://Right
-                //dispatch(actions.toggleChildren(true));
+                dispatch(actions.toggleSelectedChildren(true));
                 break;
             case  40: //Down
-                //dispatch(actions.moveSelection(false));
+                dispatch(actions.moveSelection(false));
                 break;
 
         }
