@@ -18,7 +18,7 @@ export default class Node extends  Component{
     renderExpandIcon(){
         const {expanded=false,children=[]} = this.props;
         if(children.length==0)return '';
-        let iconClass = expanded?'glyphicon glyphicon-chevron-down':'glyphicon glyphicon-chevron-up';
+        let iconClass = expanded?'glyphicon glyphicon-menu-down':'glyphicon glyphicon-menu-right';
         return  (
             <a className="btn btn-link node-show-children-btn" onClick={this.handleExpanseClick.bind(this)}>
                 <span className={iconClass}></span>
