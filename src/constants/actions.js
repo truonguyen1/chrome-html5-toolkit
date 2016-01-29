@@ -108,4 +108,10 @@ export function relayMessage(message){
     }
 }
 
-
+export const SET_ATTRIBUTES = 'SET_ATTRIBUTES';
+export function setAttributes(attributes){
+    return {
+        'type': SET_ATTRIBUTES,
+        'attributes':attributes
+    }
+}

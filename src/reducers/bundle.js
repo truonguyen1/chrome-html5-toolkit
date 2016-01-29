@@ -4,9 +4,9 @@
 import { combineReducers } from 'redux';
 import modes from './modes';
 import treeNodes from './node';
-import messages from './messages';
-import connections from './connections'
+import connections from './connections';
+import attributes from './attributes';
 
 export default combineReducers({
-    modes,treeNodes,messages,connections
+    modes,treeNodes,connections,attributes
 });

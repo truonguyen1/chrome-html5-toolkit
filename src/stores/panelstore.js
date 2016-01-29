@@ -11,13 +11,11 @@ function sendStateChange({ getState,dispatch }) {
         let returnValue = next(action);
 
         let curState = getState();
-        console.log('state after dispatch', curState);
+
         if(action.type !== actions.SEND_TO_CONTENT_SCRIPT){
-            let message = {
-                'type':actions.PANEL_STATE,
-                'message':curState
-            };
+            let message = action;
             dispatch(actions.sendToContentScript(message));
+            console.log("Sent ",message.type," to Background ",message);
         }
         // This will likely be the action itself, unless
         // a middleware further in chain changed it.

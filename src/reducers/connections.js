@@ -22,6 +22,13 @@ export default function connections(prevState =_default,action){
                     _callback(message);
             });
             return prevState;
+        case actions.SEND_TO_CONTENT_SCRIPT:
+            _backgroundConnection.postMessage({
+                'type':actions.SEND_TO_CONTENT_SCRIPT,
+                'tabId':chrome.devtools.inspectedWindow.tabId,
+                'message':action['message']
+            });
+            return prevState;
         default:
             return prevState;
 

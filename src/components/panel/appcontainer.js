@@ -55,6 +55,18 @@ class AppContainer extends  Component{
         const {dispatch,inspectMode} = this.props;
         dispatch(actions.setInspectMode(!inspectMode));
     }
+    renderAttributes(){
+        const {attrs=[]} = this.props;
+        var arr = [];
+        for(var i=0;i<attrs.length;i++){
+            arr.push(
+                <Node {...attrs[i]}
+                    toggleChildren={this.handleChildrenVisibility.bind(this)}
+                    selectNode = {this.handleNodeSelection.bind(this)}
+                ></Node>
+            )
+        }
+    }
     render(){
         const {inspectMode,root} = this.props;
 
@@ -74,7 +86,9 @@ class AppContainer extends  Component{
                         <div className="panel-spliter" onMouseDown={this.handleMouseDown} onMouseMove={this.handleMouseMove} onMouseUp={this.handleMouseUp}></div>
                         <div className="panel-attributes-view">
                             <div className="panel-attributes-header">Attributes</div>
-                            <div className="panel-attributes-body"></div>
+                            <div className="panel-attributes-body">
+                                {this.renderAttributes()}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -88,7 +102,8 @@ AppContainer.propTypes = {
 function mapStateToProps(state){
     return {
         inspectMode:state.modes.inspectMode,
-        root:state.treeNodes
+        root:state.treeNodes,
+        attrs:state.attributes
     };
 
 }

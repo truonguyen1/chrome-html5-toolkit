@@ -23,9 +23,16 @@ chrome.runtime.onConnect.addListener(function (port) {
 
         // The original connection event doesn't include the tab ID of the
         // DevTools page, so we need to send it explicitly.
+        console.log("Received ",message.type, " from DevTool", message);
         if (message.type == actions.HAND_SHAKE) {
             connections[message.tabId] = port;
             return;
+        }
+        if (message.type == actions.SEND_TO_CONTENT_SCRIPT) {
+            chrome.tabs.sendMessage(message.tabId, message.message, function(response) {
+                console.log(response);
+            });
+            console.log("Forward ",message.type, " to ContentScript", message);
         }
 
         // other message handling
