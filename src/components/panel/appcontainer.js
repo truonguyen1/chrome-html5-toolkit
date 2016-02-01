@@ -8,6 +8,7 @@ import Toolbar from './toolbar';
 import Node from './node';
 import * as actions from './../../constants/actions';
 import Css from './appcontainer.less';
+import { bindActionCreators } from 'redux'
 import jQ from 'jquery';
 class AppContainer extends  Component{
     constructor(props) {
@@ -25,17 +26,18 @@ class AppContainer extends  Component{
         console.log(arguments);
     }
     handleKeyUp(evt){
-        const {dispatch} = this.props;
+        const {dispatch,treeStates} = this.props;
+        if(treeStates.selectedId==null)return;
         let code = evt.keyCode;
         switch(code){
             case 37://Left
-                dispatch(actions.toggleSelectedChildren(false));
+                dispatch(actions.setExpanded(treeStates.selectedId,false));
                 break;
             case 38://Up
                 dispatch(actions.moveSelection(true));
                 break;
             case 39://Right
-                dispatch(actions.toggleSelectedChildren(true));
+                dispatch(actions.setExpanded(treeStates.selectedId,true));
                 break;
             case  40: //Down
                 dispatch(actions.moveSelection(false));
@@ -43,32 +45,25 @@ class AppContainer extends  Component{
 
         }
     }
-    handleChildrenVisibility(nodeid,visible){
-        const {dispatch} = this.props;
-        dispatch(actions.toggleChildren(nodeid,visible))
-    }
-    handleNodeSelection(nodeid){
-        const {dispatch} = this.props;
-        dispatch(actions.selectNode(nodeid,true));
-    }
+
     handleInspectMode(){
-        const {dispatch,inspectMode} = this.props;
-        dispatch(actions.setInspectMode(!inspectMode));
+        //const {dispatch,inspectMode} = this.props;
+        //dispatch(actions.setInspectMode(!inspectMode));
     }
     renderAttributes(){
-        const {attrs=[]} = this.props;
-        var arr = [];
-        for(var i=0;i<attrs.length;i++){
-            arr.push(
-                <Node {...attrs[i]}
-                    toggleChildren={this.handleChildrenVisibility.bind(this)}
-                    selectNode = {this.handleNodeSelection.bind(this)}
-                ></Node>
-            )
-        }
+        return (<AttrNode id="attr_root" nodeInstance={AttrNode} ></AttrNode>);
+
+    }
+    renderTree(){
+        const {dispatch} = this.props;
+
+        let boundActionCreators = bindActionCreators((actions.selectNode,actions.setExpanded), dispatch)
+        return (
+            <TreeNode id={0} type="tree" nodeInstance={TreeNode}></TreeNode>
+        );
     }
     render(){
-        const {inspectMode,root} = this.props;
+        const {inspectMode=false} = this.props;
 
         return(
             <div className="panel-container" onKeyUp={this.handleKeyUp}>
@@ -81,7 +76,7 @@ class AppContainer extends  Component{
                 <div className="panel-body">
                     <div>
                         <div className="panel-object-view">
-                            <Node {...root} toggleChildren={this.handleChildrenVisibility.bind(this)} selectNode={this.handleNodeSelection.bind(this)}></Node>
+                            {this.renderTree()}
                         </div>
                         <div className="panel-spliter" onMouseDown={this.handleMouseDown} onMouseMove={this.handleMouseMove} onMouseUp={this.handleMouseUp}></div>
                         <div className="panel-attributes-view">
@@ -97,14 +92,35 @@ class AppContainer extends  Component{
     }
 }
 AppContainer.propTypes = {
-    inspectMode:PropTypes.bool.isRequired
-}
-function mapStateToProps(state){
-    return {
-        inspectMode:state.modes.inspectMode,
-        root:state.treeNodes,
-        attrs:state.attributes
-    };
 
 }
-export default connect(mapStateToProps)(AppContainer);
+
+function mapStateToAppProps(state){
+    return {treeStates:state.treeStates};
+}
+function mapDispatchToNodeProps(dispatch){
+    let setExpanded = actions.setExpanded;
+    let selectNode = actions.selectNode;
+    return bindActionCreators({ setExpanded,selectNode }, dispatch)
+}
+
+function select(node,states){
+    var copy = Object.assign({},node);
+    var ids = states.expandedIds;
+    copy.expanded = ids.indexOf(node.id) !=-1;
+    copy.selected = states.selectedId ===node.id;
+    return copy;
+}
+var TreeNode = connect((state,ownProps)=>{
+    var instance = ownProps.nodeInstance;
+    if(instance!==TreeNode)return;
+    let id = ownProps.id;
+    return select(state.tree[id],state.treeStates);
+},mapDispatchToNodeProps)(Node);
+var AttrNode = connect((state,ownProps)=>{
+    var instance = ownProps.nodeInstance;
+    if(instance!==AttrNode)return;
+    let id = ownProps.id;
+    return select(state.attrs[id],state.attrStates);
+},mapDispatchToNodeProps)(Node);
+export default connect(mapStateToAppProps)(AppContainer);

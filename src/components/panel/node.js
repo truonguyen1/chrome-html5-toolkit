@@ -3,54 +3,42 @@
  */
 import React,{Component,PropTypes} from 'react';
 import Css from './node.less';
+import * as actions from './../../constants/actions';
 
-export default class Node extends  Component{
-
-    handleExpanseClick(){
-        const{id,toggleChildren} = this.props;
-        toggleChildren(id);
-    }
-
-    handleHeaderClick(evt){
-        const {id,selectNode} = this.props;
-        selectNode(id);
-    }
+class Node extends  Component{
     renderExpandIcon(){
-        const {expanded=false,children=[]} = this.props;
-        if(children.length==0)return '';
+        const {expanded=false,childrenIds=[],setExpanded,id} = this.props;
+        if(childrenIds.length==0)return '';
         let iconClass = expanded?'glyphicon glyphicon-menu-down':'glyphicon glyphicon-menu-right';
         return  (
-            <a className="btn btn-link node-show-children-btn" onClick={this.handleExpanseClick.bind(this)}>
+            <a className="btn btn-link node-show-children-btn" onClick={()=>setExpanded(id,!expanded)}>
                 <span className={iconClass}></span>
             </a>
         )
     }
-    renderChildren(){
-        const {expanded=false,children=[],toggleChildren,selectNode} = this.props;
-        if(children.length==0 || !expanded)return '';
+    renderChildrenNodes(){
+        const {childrenIds=[],nodeInstance,type,expanded=false} = this.props;
+        if(!expanded) return [];
+        var NodeInstance = nodeInstance;
         var arr = [];
-        for(var i=0;i<children.length;i++){
-            arr.push(<Node
-                key={children[i].id} {...children[i]}
-                selectNode={selectNode}
-                toggleChildren={toggleChildren}
-            ></Node>);
+
+        for(var i=0;i<childrenIds.length;i++){
+            arr.push(<NodeInstance
+                nodeInstance={nodeInstance}
+                key={childrenIds[i]}
+                id={childrenIds[i]}></NodeInstance>)
         }
-        return (
-            <div className={expanded?'nodes nodes-visible':'nodes'}>
-                {arr}
-            </div>
-        );
+        return arr;
     }
     render(){
-        const {name,selected} = this.props;
+        const {name,selected=false,selectNode,id} = this.props;
         let headerClass = 'node-header';
         if(selected){
             headerClass +=' node-selected';
         }
         return (
             <div className="node">
-                <div className={headerClass} onClick={this.handleHeaderClick.bind(this)}>
+                <div className={headerClass} onClick={()=>selectNode(id,true)}>
                     <div className="node-show-children-action">
                         {this.renderExpandIcon()}
                     </div>
@@ -59,7 +47,7 @@ export default class Node extends  Component{
                     </div>
                 </div>
                 <div className="node-body">
-                    {this.renderChildren()}
+                    {this.renderChildrenNodes()}
                 </div>
             </div>
         );
@@ -68,3 +56,5 @@ export default class Node extends  Component{
 
 Node.propTypes = {
 }
+
+export default Node;

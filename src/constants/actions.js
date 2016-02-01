@@ -41,12 +41,12 @@ export function handleMessage(message){
     }
 }
 
-export const TOGGLE_CHILDREN = 'TOGGLE_CHILDREN';
-export function toggleChildren(id,value){
+export const SET_EXPANDED = 'SET_EXPANDED';
+export function setExpanded(id,value){
     return {
-        'type': TOGGLE_CHILDREN,
-        'id':id,
-        'visible':value
+        'type': SET_EXPANDED,
+        'nodeId':id,
+        'expanded':value
     }
 }
 
@@ -64,7 +64,7 @@ export const SELECT_NODE = 'SELECT_NODE';
 export function selectNode(id,selection){
     return {
         'type': SELECT_NODE,
-        'id':id,
+        'nodeId':id,
         'selection':selection
     }
 }

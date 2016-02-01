@@ -3,22 +3,8 @@
  */
 
 import * as actions from './../constants/actions';
-let _defaults = {
-    expanded:false,
-    name:'Root1',
-    id:23,
-    children:[
-        {id:1,name:'Child 1 LV1 ',children:[
-            {id:11,name:"child 11 LV2"},
-            {id:12,name:"child 121 LV2"},
-            {id:13,name:"child 14 LV2"}
 
-        ]},
-        {id:2,name:'Child 2 LV1 '},
-        {id:3,name:'Child 3 LV1 '},
-        {id:4 ,name:'Child 4 LV1 '}
-    ]
-}
+let _defaults = {}
 
 function traverseNode(parent,node,callBack,index){
     var stop = callBack(node,parent,index);
@@ -40,95 +26,27 @@ function traverseNodeById(root,id,callback){
     })
 };
 
-export default function node(prevState = _defaults,action){
+function node(prevState = {},action){
     switch(action.type){
-        case actions.ADD_NODE:{
-            let parentId = action['parentid'];
-            if(parentId==null){
-                return action['node'];
-            }
-            let copy = Object.assign({}, prevState);
-            traverseNodeById(copy,parentId,node=>{
-                node.children.push(action['node']);
-            })
-            return copy;
-        };
-        case actions.TOGGLE_SELECTED_CHILDREN:{
-            let copy = Object.assign({}, prevState);
-            let visible = action.visible;
-            traverseNode(null,copy,(node)=>{
-                if(node.selected){
-                    node.expanded = visible;
-                    if(visible && node.children && node.children.length>0){
-                        node.selected = false;
-                        node.children[0].selected = true;
-                    }
-                    return true;
-                }
-                return false;
-            });
-            return copy;
-        }
-        case actions.MOVE_SELECTION:
-        {
-            let copy = Object.assign({}, prevState);
-            var isUp = action['isUp'];
-            //TODO: HANDLE SELECTION UP AND DOWN
-            var selection = null;
-            traverseNode(null,copy, (node, parent, index)=> {
-                if(node.selected==false)return;
-                if (isUp) {
-                    if (index == null) {
-                        return true;
-                    }
-                    node.selected =false;
-                    if (index == 0) {
-                        parent.selected = true;
-                        return true;
-                    }
-                    var sibling = parent.children[index - 1];
-                    if (sibling == null)return;
-                    parent.children[index - 1].selected = true;
-                    return true;
-                }
-                if (node.expanded == false && parent == null)return;
-                node.selected =false;
-                if (node.expanded == true) {
-                    var child = node.children[0];
-                    if (child == null)return;
-                    node.children[0].selected = true;
-                    return true;
-                }
-                var sibling = parent.children[index + 1];
-                if (sibling == null)return;
-                parent.children[index + 1].selected = true;
-                return true;
-
-            })
-            return copy;
-        }
-        case actions.SELECT_NODE:
-        {
-            let copy = Object.assign({}, prevState);
-            let id = action['id'];
-            let selection = action['selection'];
-            traverseNode(null,copy, function (node) {
-                if(node.id===id) node.selected = true;
-                else node.selected = false;
-            });
-            return copy;
-        }
-        case actions.TOGGLE_CHILDREN:
-        {
-            var copy = Object.assign({}, prevState);
-            var id = action['id'];
-            traverseNodeById(copy, id, function (node) {
-                node.expanded = action['visible'] == null ? !node.expanded : action['visible'];
-            });
-            return copy;
-        }
         default:
-            return prevState;
-            break;
+           return prevState;
     }
+}
+let _defaultStates = {
+    0:{id:0,name:'root',childrenIds:[2]},
+    2:{id:2,name:'child 2',childrenIds:[5]},
+    3:{id:3,name:'child 3',childrenIds:[]},
+    4:{id:4,name:'child 4',childrenIds:[]},
+    5:{id:5,name:'child 2- 5',childrenIds:[]}
+}
+export default function (state = _defaultStates,action){
+    const { nodeId } = action
+    if (typeof nodeId === 'undefined') {
+        return state
+    }
+
+    return Object.assign({}, state, {
+        [nodeId]: node(state[nodeId], action)
+    })
+
 }

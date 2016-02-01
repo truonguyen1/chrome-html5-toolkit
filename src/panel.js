@@ -10,7 +10,8 @@ let panelStore = createPanelStore(reducer);
 
 ReactDOM.render(
     <Provider store={panelStore}>
-        <AppContainer></AppContainer>
+        <AppContainer>
+        </AppContainer>
     </Provider>,
     document.getElementById('root')
 );
