@@ -13,8 +13,6 @@ import jQ from 'jquery';
 class AppContainer extends  Component{
     constructor(props) {
         super(props)
-        this.handleKeyUpHandler = this.handleKeyUp.bind(this);
-        jQ(document).keyup(this.handleKeyUpHandler);
     }
     handleMouseDown(){
 
@@ -26,8 +24,7 @@ class AppContainer extends  Component{
         console.log(arguments);
     }
     handleKeyUp(evt){
-        const {dispatch,treeStates} = this.props;
-        if(treeStates.selectedId==null)return;
+        const {dispatch} = this.props;
         let code = evt.keyCode;
         switch(code){
             case 37://Left
@@ -46,36 +43,29 @@ class AppContainer extends  Component{
         }
     }
 
-    handleInspectMode(){
-        //const {dispatch,inspectMode} = this.props;
-        //dispatch(actions.setInspectMode(!inspectMode));
-    }
     renderAttributes(){
-        return (<AttrNode id="attr_root" nodeInstance={AttrNode} ></AttrNode>);
+        return (<ConnectedNode id={2} path="attrs" nodeInstance={ConnectedNode} ></ConnectedNode>);
 
     }
     renderTree(){
-        const {dispatch} = this.props;
-
-        let boundActionCreators = bindActionCreators((actions.selectNode,actions.setExpanded), dispatch)
         return (
-            <TreeNode id={0} type="tree" nodeInstance={TreeNode}></TreeNode>
+            <ConnectedNode id={0} path="tree" nodeInstance={ConnectedNode}></ConnectedNode>
         );
     }
     render(){
-        const {inspectMode=false} = this.props;
+        const {inspectMode=false,setInspectMode} = this.props;
 
         return(
-            <div className="panel-container" onKeyUp={this.handleKeyUp}>
+            <div className="panel-container">
                 <div className="panel-header">
                     <Toolbar
-                        toggleInspect={this.handleInspectMode.bind(this)}
+                        toggleInspect={()=>setInspectMode(!inspectMode)}
                         inspectMode={inspectMode}>
                     </Toolbar>
                 </div>
                 <div className="panel-body">
                     <div>
-                        <div className="panel-object-view">
+                        <div className="panel-object-view" >
                             {this.renderTree()}
                         </div>
                         <div className="panel-spliter" onMouseDown={this.handleMouseDown} onMouseMove={this.handleMouseMove} onMouseUp={this.handleMouseUp}></div>
@@ -94,9 +84,12 @@ class AppContainer extends  Component{
 AppContainer.propTypes = {
 
 }
-
+function mapDispatchToAppProps(dispatch){
+    let setInspectMode = actions.setInspectMode;
+    return bindActionCreators({ setInspectMode}, dispatch)
+}
 function mapStateToAppProps(state){
-    return {treeStates:state.treeStates};
+    return {inspectMode:state.modes.inspectMode};
 }
 function mapDispatchToNodeProps(dispatch){
     let setExpanded = actions.setExpanded;
@@ -111,16 +104,9 @@ function select(node,states){
     copy.selected = states.selectedId ===node.id;
     return copy;
 }
-var TreeNode = connect((state,ownProps)=>{
-    var instance = ownProps.nodeInstance;
-    if(instance!==TreeNode)return;
-    let id = ownProps.id;
-    return select(state.tree[id],state.treeStates);
+var ConnectedNode = connect((state,ownProps)=>{
+    let node = state.nodes[ownProps.path][ownProps.id];
+    return select(node,state.nodeStates[ownProps.path]);
 },mapDispatchToNodeProps)(Node);
-var AttrNode = connect((state,ownProps)=>{
-    var instance = ownProps.nodeInstance;
-    if(instance!==AttrNode)return;
-    let id = ownProps.id;
-    return select(state.attrs[id],state.attrStates);
-},mapDispatchToNodeProps)(Node);
-export default connect(mapStateToAppProps)(AppContainer);
+
+export default connect(mapStateToAppProps,mapDispatchToAppProps)(AppContainer);

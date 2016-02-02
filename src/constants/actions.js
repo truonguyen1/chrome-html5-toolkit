@@ -42,9 +42,10 @@ export function handleMessage(message){
 }
 
 export const SET_EXPANDED = 'SET_EXPANDED';
-export function setExpanded(id,value){
+export function setExpanded(id,path,value){
     return {
         'type': SET_EXPANDED,
+        'path':path,
         'nodeId':id,
         'expanded':value
     }
@@ -61,9 +62,10 @@ export function addNode(parentId,node){
 
 
 export const SELECT_NODE = 'SELECT_NODE';
-export function selectNode(id,selection){
+export function selectNode(id,path,selection){
     return {
         'type': SELECT_NODE,
+        'path':path,
         'nodeId':id,
         'selection':selection
     }

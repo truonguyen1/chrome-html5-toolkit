@@ -4,29 +4,38 @@
 import * as actions from './../constants/actions';
 
 let _default = {
-    'expandedIds':[],
-    'selectedId':null
+    tree: {
+        'expandedIds': [],
+        'selectedId': null
+    },
+    attrs:{
+        'expandedIds': [],
+        'selectedId': null
+    }
+
 };
 export default function nodeStates(prevState = _default,action){
+    const {path,nodeId} = action;
+    if(path==null)return prevState;
+    if(nodeId==null)return prevState;
+    if(prevState[path]==null)return prevState;
+    let copy = Object.assign({}, prevState);
+
     switch(action.type){
         case actions.SET_EXPANDED:
-            let copy = Object.assign({}, prevState);
-            if(action.nodeId==null)return prevState;
-            var index =  copy.expandedIds.indexOf(action.nodeId);
+            var index =  copy[path].expandedIds.indexOf(nodeId);
             if(action.expanded) {
                 if(index!=-1) return prevState;
-                copy.expandedIds.push(action.nodeId);
+                copy[path].expandedIds.push(nodeId);
                 return copy;
             }
             else {
                 if(index==-1)return prevState;
-                copy.expandedIds.splice(index,1);
+                copy[path].expandedIds.splice(index,1);
                 return copy;
             }
         case actions.SELECT_NODE:{
-            let copy = Object.assign({}, prevState);
-            if(action.nodeId==null)return prevState;
-            copy.selectedId = action.nodeId;
+            copy[path].selectedId = nodeId;
             return copy;
         }
         default:
