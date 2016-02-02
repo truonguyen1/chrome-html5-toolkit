@@ -14,35 +14,25 @@ class AppContainer extends  Component{
     constructor(props) {
         super(props)
     }
-    handleMouseDown(){
-
-    }
-    handleMouseUp(){
-        console.log(arguments);
-    }
-    handleMouseMove(){
-        console.log(arguments);
-    }
-    handleKeyUp(evt){
-        const {dispatch} = this.props;
+    handleKeyDown(path,evt){
+        const {id,setSelectionExpanded} = this.props;
         let code = evt.keyCode;
         switch(code){
             case 37://Left
-                dispatch(actions.setExpanded(treeStates.selectedId,false));
+                setSelectionExpanded(path,false);
                 break;
             case 38://Up
-                dispatch(actions.moveSelection(true));
                 break;
             case 39://Right
-                dispatch(actions.setExpanded(treeStates.selectedId,true));
+                setSelectionExpanded(path,true,childrenIds[0]);
                 break;
             case  40: //Down
-                dispatch(actions.moveSelection(false));
                 break;
 
         }
+        evt.stopPropagation();
+        evt.preventDefault();
     }
-
     renderAttributes(){
         return (<ConnectedNode id={2} path="attrs" nodeInstance={ConnectedNode} ></ConnectedNode>);
 
@@ -65,13 +55,13 @@ class AppContainer extends  Component{
                 </div>
                 <div className="panel-body">
                     <div>
-                        <div className="panel-object-view" >
+                        <div className="panel-object-view" tabIndex="1" onKeyDown={this.handleKeyDown.bind(this,"tree")}>
                             {this.renderTree()}
                         </div>
                         <div className="panel-spliter" onMouseDown={this.handleMouseDown} onMouseMove={this.handleMouseMove} onMouseUp={this.handleMouseUp}></div>
                         <div className="panel-attributes-view">
                             <div className="panel-attributes-header">Attributes</div>
-                            <div className="panel-attributes-body">
+                            <div className="panel-attributes-body" tabIndex="2">
                                 {this.renderAttributes()}
                             </div>
                         </div>
@@ -94,7 +84,8 @@ function mapStateToAppProps(state){
 function mapDispatchToNodeProps(dispatch){
     let setExpanded = actions.setExpanded;
     let selectNode = actions.selectNode;
-    return bindActionCreators({ setExpanded,selectNode }, dispatch)
+    let setSelectionExpanded = actions.setSelectionExpanded;
+    return bindActionCreators({ setExpanded,selectNode,setSelectionExpanded }, dispatch)
 }
 
 function select(node,states){

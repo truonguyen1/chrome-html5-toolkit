@@ -40,11 +40,11 @@ function node(prevState = {},action){
 }
 let _defaultStates = {
     tree:{
-        0:{id:0,name:'root',childrenIds:[2]},
-        2:{id:2,name:'child 2',childrenIds:[5]},
-        3:{id:3,name:'child 3',childrenIds:[]},
-        4:{id:4,name:'child 4',childrenIds:[]},
-        5:{id:5,name:'child 2- 5',childrenIds:[]}
+        0: {id: 0, name: 'root', childrenIds: [2]},
+        2: {id: 2, name: 'child 2', childrenIds: [5]},
+        3: {id: 3, name: 'child 3', childrenIds: []},
+        4: {id: 4, name: 'child 4', childrenIds: []},
+        5: {id: 5, name: 'child 2- 5', childrenIds: []}
     },
     attrs:{
         2:{id:2,name:'child2',childrenIds:[6,7]},

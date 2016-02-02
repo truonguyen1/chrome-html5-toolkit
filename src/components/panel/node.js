@@ -2,6 +2,7 @@
  * Created by Truong on 1/24/2016.
  */
 import React,{Component,PropTypes} from 'react';
+import ReactDOM from 'react-dom';
 import Css from './node.less';
 import * as actions from './../../constants/actions';
 
@@ -34,6 +35,7 @@ class Node extends  Component{
         }
         return arr;
     }
+
     render(){
         const {name,selected=false,selectNode,id,path} = this.props;
         let headerClass = 'node-header';

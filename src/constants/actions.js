@@ -50,6 +50,15 @@ export function setExpanded(id,path,value){
         'expanded':value
     }
 }
+export const SET_SELECTION_EXPANDED = 'SET_SELECTION_EXPANDED';
+export function setSelectionExpanded(path,value,firstChildId){
+    return {
+        'type': SET_SELECTION_EXPANDED,
+        'path':path,
+        'firstChildId':firstChildId,
+        'expanded':value
+    }
+}
 
 export const ADD_NODE = 'ADD_NODE';
 export function addNode(parentId,node){
