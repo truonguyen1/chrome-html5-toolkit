@@ -12,16 +12,14 @@ export function createContentScriptStore(reducer){
     if(store==null) {
         store = createStore(reducer);
         chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-            console.log("Received ",request.type, " from Background ,request");
+            console.log("ContentScript Received ",request.type, " from Background ",request);
+            var event = new CustomEvent('messageFromExtension', {'detail':request});
+            document.dispatchEvent(event);
         });
-        window.addEventListener("message", function(event) {
-            if (event.source != window)
-                return;
-            if (event.data) {
-                console.log("Received ", event.data.type, " from page",event.data);
-                store.dispatch(actions.sendToExtension(event.data));
-            }
-        }, false);
+        document.addEventListener("messageToExtension", function(data) {
+            var message = data['detail'];
+            store.dispatch(actions.sendToExtension(message));
+        });
     }
     return store;
 }

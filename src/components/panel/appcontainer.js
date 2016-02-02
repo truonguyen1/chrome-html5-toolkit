@@ -34,12 +34,12 @@ class AppContainer extends  Component{
         evt.preventDefault();
     }
     renderAttributes(){
-        return (<ConnectedNode id={2} path="attrs" nodeInstance={ConnectedNode} ></ConnectedNode>);
+        return (<ConnectedNode id="root" path="attrs" nodeInstance={ConnectedNode} ></ConnectedNode>);
 
     }
     renderTree(){
         return (
-            <ConnectedNode id={0} path="tree" nodeInstance={ConnectedNode}></ConnectedNode>
+            <ConnectedNode id="root" path="tree" nodeInstance={ConnectedNode}></ConnectedNode>
         );
     }
     render(){

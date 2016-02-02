@@ -126,3 +126,12 @@ export function setAttributes(attributes){
         'attributes':attributes
     }
 }
+
+export const SET_ROOT = 'SET_ROOT';
+export function setRoot(path,root){
+    return {
+        'type': SET_ROOT,
+        'path':path,
+        'root':root
+    }
+}
