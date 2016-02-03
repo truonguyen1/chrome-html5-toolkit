@@ -31,6 +31,7 @@
     "jquery": "^2.2.0",
     "less": "^2.5.3",
     "less-loader": "^2.2.2",
+    "multireducer": "^2.0.0",
     "react-hot-loader": "^1.3.0",
     "react-redux": "^4.0.6",
     "redux": "^3.0.5",

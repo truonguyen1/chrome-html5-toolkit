@@ -1,0 +1,137 @@
+oldProto = geotoolkit.plot.Plot.prototype;
+oldConstructor = geotoolkit.plot.Plot.constructor;
+oldDispose = oldProto.dispose;
+ID_EXT_KEY='__CHROME_EXT_ID';
+geotoolkit.plot.Plot = function(options) {
+    oldConstructor.call(this,options);
+    geotoolkit.plot.Plot.instances.push(this);
+};
+oldProto.dispose = function(){
+    oldDispose.apply(this,arguments);
+    var index = geotoolkit.plot.Plot.instances.indexOf(this);
+    if(index!=-1) {
+        geotoolkit.plot.Plot.instances.splice(index, 1);
+    }
+    updateTreeExtension();
+}
+
+geotoolkit.plot.Plot.prototype = oldProto;
+geotoolkit.plot.Plot.contructor =geotoolkit.plot.Plot;
+geotoolkit.plot.Plot.instances = [];
+geotoolkit.plot.Plot.getJSON = function(){
+    var counter = 0;
+    var treeObj = {};
+    var rootIds = [];
+    for(var i=0;i<geotoolkit.plot.Plot.instances.length;i++){
+        var childNode = geotoolkit.plot.Plot.instances[i].getRoot();
+        if(childNode==null)continue;
+        var childJson = traverseToolkitNode(childNode,function(node){
+            var id = 'node-'+(counter++);
+            node[ID_EXT_KEY] =id;
+            return {
+                'id':id,
+                'name':node.getClassName()
+            };
+        },function(o){
+            treeObj[o['id']]= o;
+        });
+        rootIds.push(childJson['id']);
+    }
+    treeObj['root'] = {'id':'root','name':'Root','childrenIds':rootIds};
+    return treeObj;
+};
+____LAS_DATA = null;
+window.updateTreeExtension = function(){
+    ____LAS_DATA = geotoolkit.plot.Plot.getJSON();
+    sendMessageToExtension({
+        'type': 'SET_ROOT',
+        'path': 'tree',
+        'root': ____LAS_DATA
+    });
+};
+window.sendMessageToExtension = function(message){
+    var event = new CustomEvent('messageToExtension', {
+        'detail': message
+    });
+    document.dispatchEvent(event);
+};
+window.findNode = function(id){
+    var plots = geotoolkit.plot.Plot.instances;
+    for(var i=0;i<plots.length;i++){
+        var root = plots[i].getRoot();
+        if(root==null)continue;
+        var found =  geotoolkit.selection.from(root).where(function(node){
+            return node[ID_EXT_KEY] == id
+        }).selectFirst();
+        if(found!=null)return found;
+    }
+    return null;
+};
+document.addEventListener("messageFromExtension", function(event) {
+    var message = event.detail;
+    switch(message.type){
+        case 'SELECT_NODE':{
+            var path = message['path'];
+            if(path!=='tree')return;
+            var nodeId = message['nodeId'];
+            var selection = message['selection'];
+            var node = findNode(nodeId);
+            if(node==null)return;
+            var json = getAttrJSON(node);
+            sendMessageToExtension({
+                'type': 'SET_ROOT',
+                'path': 'attrs',
+                'root': json
+            });
+
+        }
+    }
+    console.log("Page Received ", event.detail, " from ContentScript");
+}, false);
+
+window.getName = function(value){
+    if(value.getClassName) return value.getClassName()
+};
+
+window.getAttrJSON = function(node){
+    var obj = {};
+    var counter = 0;
+    var ids =[];
+    traverseToolkitAttributes(node,function(name,value){
+        var id = 'attr-'+(counter++);
+        //value['__CHROME_EXT_ID'] =id;
+        name += value!=null?value.toString():'';
+        return {
+            'id':id,
+            'name':name
+        }
+
+    },function(o){
+        obj[o['id']] = o;
+        ids.push(o['id']);
+    });
+    obj['root'] = {'id':'root','name':node.getClassName(),'childrenIds':ids};
+    return obj;
+};
+window.traverseToolkitAttributes = function(node,callback,addCallback){
+    if(typeof callback !=='function')return{};
+    for(var name in node){
+        var obj = callback(name,node[name]);
+        addCallback(obj);
+    }
+};
+window.traverseToolkitNode = function(node,getNodeInfo,addNode){
+    if(typeof getNodeInfo !=='function')return{};
+    var obj = getNodeInfo(node);
+    addNode(obj);
+    if(!(node instanceof geotoolkit.scene.CompositeNode)){
+        return obj;
+    }
+    obj.childrenIds = [];
+    var child;
+    for(var i=0;i<node.getChildrenCount();i++){
+        child = traverseToolkitNode(node.getChild(i),getNodeInfo,addNode);
+        obj.childrenIds.push(child['id']);
+    }
+    return obj;
+};

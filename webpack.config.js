@@ -6,7 +6,7 @@ module.exports = {
     'devtool':'./src/devtool',
     'background':'./src/background',
     'contentscript':'./src/contentscript',
-    'injectedscript':'./src/injectedscript',
+    'injectedscript':'file?name=[name].[ext]!./src/injectedscript.txt',
     'panel':'./src/panel',
     'manifest':'file?name=[name].[ext]!./src/manifest.json'
   },

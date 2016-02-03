@@ -9,13 +9,22 @@
 
 import * as actions from './constants/actions';
 
-chrome.browserAction.onClicked.addListener(function(tab) {
-    //chrome.tabs.sendMessage(tab.id, {"message": "clicked_browser_action"});
-    //chrome.tabs.executeScript(tab.id,{ file: 'injectedscript.js' });
-});
+
 
 
 var connections = {};
+chrome.browserAction.onClicked.addListener(function(tab) {
+    var contentScript = require("raw!./injectedscript.txt");
+
+    //chrome.tabs.executeScript(tab.id,{ file: 'injectedscript.js' });
+    chrome.tabs.sendMessage(tab.id,{
+        type:"EXECUTE_SCRIPT",
+        content:contentScript
+    }, function(response) {
+        console.log(response);
+    });
+});
+
 
 chrome.runtime.onConnect.addListener(function (port) {
 
