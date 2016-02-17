@@ -13,12 +13,17 @@ export function createContentScriptStore(reducer){
         store = createStore(reducer);
         chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
             console.log("ContentScript Received ",request.type, " from Background ",request);
+            store.dispatch(request);
             var event = new CustomEvent('messageFromExtension', {'detail':request});
             document.dispatchEvent(event);
         });
         document.addEventListener("messageToExtension", function(data) {
             var message = data['detail'];
             store.dispatch(actions.sendToExtension(message));
+        });
+        document.addEventListener("messageToContentScript", function(data) {
+            var message = data['detail'];
+            store.dispatch(message);
         });
     }
     return store;

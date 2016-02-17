@@ -5,6 +5,8 @@ import React,{Component,PropTypes} from 'react';
 import ReactDOM from 'react-dom';
 import Css from './node.less';
 import * as actions from './../../constants/actions';
+import {connect} from 'react-redux';
+import { bindActionCreators } from 'redux'
 
 class Node extends  Component{
     renderExpandIcon(){
@@ -21,17 +23,15 @@ class Node extends  Component{
 
     }
     renderChildrenNodes(){
-        const {childrenIds=[],nodeInstance,expanded=false,path} = this.props;
+        const {childrenIds=[],expanded=false,path} = this.props;
         if(!expanded) return [];
-        var NodeInstance = nodeInstance;
         var arr = [];
 
         for(var i=0;i<childrenIds.length;i++){
-            arr.push(<NodeInstance
-                nodeInstance={nodeInstance}
+            arr.push(<ConnectedNode
                 path = {path}
                 key={childrenIds[i]}
-                id={childrenIds[i]}></NodeInstance>)
+                id={childrenIds[i]}></ConnectedNode>)
         }
         return arr;
     }
@@ -62,5 +62,23 @@ class Node extends  Component{
 
 Node.propTypes = {
 }
+function mapDispatchToNodeProps(dispatch){
+    let setExpanded = actions.setExpanded;
+    let selectNode = actions.selectNode;
+    return bindActionCreators({ setExpanded,selectNode }, dispatch)
+}
+function select(node,states){
+    var copy = Object.assign({},node);
+    var {expandedIds=[],selectedId=''} = states;
+    copy.expanded = expandedIds.indexOf(node.id) !=-1;
+    copy.selected =selectedId.toString() ===node.id.toString();
+    return copy;
+}
+var ConnectedNode = connect((state,ownProps)=>{
+    var tree = state.nodes[ownProps.path];
+    if(tree==null) return {};
+    var node = tree.list[ownProps.id];
+    return select(node,tree);
+},mapDispatchToNodeProps)(Node);
 
-export default Node;
+export default ConnectedNode;

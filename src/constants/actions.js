@@ -102,20 +102,12 @@ export function sendToExtension(messsage){
         'message':messsage
     }
 }
-
-export const ESTABLISH_CONNECTION_WITH_BACKGROUND = 'ESTABLISH_CONNECTION_WITH_BACKGROUND';
 export const HAND_SHAKE = 'HAND_SHAKE';
-export function createConnectionWithBackground(name,onMessageCallback){
+
+export const ADD_LIST_ITEM = 'ADD_LIST_ITEM';
+export function addListItem(id,name){
     return {
-        'type': ESTABLISH_CONNECTION_WITH_BACKGROUND,
-        'name':name,
-        'onMessageCallback':onMessageCallback
-    }
-}
-export function relayMessage(message){
-    return {
-        'type': message.type,
-        'message':message.message
+        id:id,name:name
     }
 }
 
@@ -128,10 +120,37 @@ export function setAttributes(attributes){
 }
 
 export const SET_ROOT = 'SET_ROOT';
-export function setRoot(path,root){
+export function setRoot(path,rootId){
     return {
         'type': SET_ROOT,
         'path':path,
-        'root':root
+        'rooId':rootId
+    }
+}
+export const HIGHLIGHT_NODE = 'HIGHLIGHT_NODE';
+
+export const MOVE_SELECTION_UP = 'MOVE_SELECTION_UP';
+export function moveSelectionUp(path){
+    return {
+        'type': MOVE_SELECTION_UP,
+        'path':path
+    }
+}
+
+
+export const MOVE_SELECTION_DOWN = 'MOVE_SELECTION_DOWN';
+export function moveSelectionDown(path){
+    return {
+        'type': MOVE_SELECTION_DOWN,
+        'path':path
+    }
+}
+
+export const SET_LIST_DATA = 'SET_LIST_DATA';
+export function setListData(data,path){
+    return {
+        'type': SET_LIST_DATA,
+        'path':path,
+        'data':data
     }
 }

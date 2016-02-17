@@ -15,31 +15,31 @@ class AppContainer extends  Component{
         super(props)
     }
     handleKeyDown(path,evt){
-        const {id,setSelectionExpanded} = this.props;
+        const {id,setSelectionExpanded,moveSelectionDown,moveSelectionUp} = this.props;
         let code = evt.keyCode;
         switch(code){
             case 37://Left
                 setSelectionExpanded(path,false);
                 break;
             case 38://Up
+                moveSelectionUp(path);
                 break;
             case 39://Right
-                setSelectionExpanded(path,true,childrenIds[0]);
+                setSelectionExpanded(path,true);
                 break;
             case  40: //Down
+                moveSelectionDown(path);
                 break;
 
         }
-        evt.stopPropagation();
-        evt.preventDefault();
     }
     renderAttributes(){
-        return (<ConnectedNode id="root" path="attrs" nodeInstance={ConnectedNode} ></ConnectedNode>);
+        return (<Node id="root" path="attrs"></Node>);
 
     }
     renderTree(){
         return (
-            <ConnectedNode id="root" path="tree" nodeInstance={ConnectedNode}></ConnectedNode>
+            <Node id="root" path="tree"></Node>
         );
     }
     render(){
@@ -61,7 +61,7 @@ class AppContainer extends  Component{
                         <div className="panel-spliter" onMouseDown={this.handleMouseDown} onMouseMove={this.handleMouseMove} onMouseUp={this.handleMouseUp}></div>
                         <div className="panel-attributes-view">
                             <div className="panel-attributes-header">Attributes</div>
-                            <div className="panel-attributes-body" tabIndex="2">
+                            <div className="panel-attributes-body" tabIndex="2" onKeyDown={this.handleKeyDown.bind(this,"attrs")}>
                                 {this.renderAttributes()}
                             </div>
                         </div>
@@ -76,28 +76,12 @@ AppContainer.propTypes = {
 }
 function mapDispatchToAppProps(dispatch){
     let setInspectMode = actions.setInspectMode;
-    return bindActionCreators({ setInspectMode}, dispatch)
+    let setSelectionExpanded = actions.setSelectionExpanded;
+    let moveSelectionDown = actions.moveSelectionDown;
+    let moveSelectionUp = actions.moveSelectionUp;
+    return bindActionCreators({ setInspectMode,setSelectionExpanded,moveSelectionDown,moveSelectionUp}, dispatch)
 }
 function mapStateToAppProps(state){
     return {inspectMode:state.modes.inspectMode};
 }
-function mapDispatchToNodeProps(dispatch){
-    let setExpanded = actions.setExpanded;
-    let selectNode = actions.selectNode;
-    let setSelectionExpanded = actions.setSelectionExpanded;
-    return bindActionCreators({ setExpanded,selectNode,setSelectionExpanded }, dispatch)
-}
-
-function select(node,states){
-    var copy = Object.assign({},node);
-    var ids = states.expandedIds;
-    copy.expanded = ids.indexOf(node.id) !=-1;
-    copy.selected = states.selectedId ===node.id;
-    return copy;
-}
-var ConnectedNode = connect((state,ownProps)=>{
-    let node = state.nodes[ownProps.path][ownProps.id];
-    return select(node,state.nodeStates[ownProps.path]);
-},mapDispatchToNodeProps)(Node);
-
 export default connect(mapStateToAppProps,mapDispatchToAppProps)(AppContainer);

@@ -44,13 +44,19 @@ ____LAS_DATA = null;
 window.updateTreeExtension = function(){
     ____LAS_DATA = geotoolkit.plot.Plot.getJSON();
     sendMessageToExtension({
-        'type': 'SET_ROOT',
+        'type': 'SET_LIST_DATA',
         'path': 'tree',
-        'root': ____LAS_DATA
+        'data': ____LAS_DATA
     });
 };
 window.sendMessageToExtension = function(message){
     var event = new CustomEvent('messageToExtension', {
+        'detail': message
+    });
+    document.dispatchEvent(event);
+};
+window.sendMessageToContentScript = function(message){
+    var event = new CustomEvent('messageToContentScript', {
         'detail': message
     });
     document.dispatchEvent(event);
@@ -67,6 +73,32 @@ window.findNode = function(id){
     }
     return null;
 };
+window.getNodeBounds = function(node){
+    if(!node.getRoot || node.getRoot()==null) return null;
+    var root = node.getRoot();
+    var plots = geotoolkit.plot.Plot.instances;
+    var canvas;
+    for(var i=0;i<plots.length;i++){
+        if(plots[i].getRoot()===root){
+            canvas = plots[i].getCanvas();
+        }
+    }
+    if(canvas==null)return null;
+    canvas = $(canvas);
+    var x = canvas.offset().left -$(window).scrollLeft();
+    var y = canvas.offset().top -$(window).scrollTop();
+    var w=0,h=0;
+    if(node.getDeviceLimits) {
+        var limits = node.getDeviceLimits()
+
+        x += limits.getX();
+        y +=limits.getY();
+        w = node.getDeviceLimits().getWidth();
+        h = node.getDeviceLimits().getHeight();
+    }
+    return {x:x,y:y,width:w,height:h};
+
+}
 document.addEventListener("messageFromExtension", function(event) {
     var message = event.detail;
     switch(message.type){
@@ -78,10 +110,17 @@ document.addEventListener("messageFromExtension", function(event) {
             var node = findNode(nodeId);
             if(node==null)return;
             var json = getAttrJSON(node);
+            var pos = getNodeBounds(node);
+            if(pos!=null) {
+                sendMessageToContentScript({
+                    'type': 'HIGHLIGHT_NODE',
+                    'node':pos
+                });
+            }
             sendMessageToExtension({
-                'type': 'SET_ROOT',
+                'type': 'SET_LIST_DATA',
                 'path': 'attrs',
-                'root': json
+                'data': json
             });
 
         }
@@ -100,7 +139,7 @@ window.getAttrJSON = function(node){
     traverseToolkitAttributes(node,function(name,value){
         var id = 'attr-'+(counter++);
         //value['__CHROME_EXT_ID'] =id;
-        name += value!=null?value.toString():'';
+        name += ': '+(value!=null?value.toString():'');
         return {
             'id':id,
             'name':name
