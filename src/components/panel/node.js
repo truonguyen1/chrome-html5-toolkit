@@ -37,10 +37,14 @@ class Node extends  Component{
     }
 
     render(){
-        const {name,selected=false,selectNode,id,path} = this.props;
+        const {name,selected=false,selectNode,id,path,logNode} = this.props;
         let headerClass = 'node-header';
         if(selected){
             headerClass +=' node-selected';
+        }
+        let actions = 'node-actions';
+        if(selected){
+            actions += ' node-actions-show';
         }
         return (
             <div className="node">
@@ -50,6 +54,9 @@ class Node extends  Component{
                     </div>
                     <div className="node-title">
                         <span>{name}</span>
+                    </div>
+                    <div className={actions}>
+                        <button onClick={()=>logNode(id,path)} className="btn btn-link"><span className="glyphicon glyphicon-console"></span></button>
                     </div>
                 </div>
                 <div className="node-body">
@@ -65,7 +72,8 @@ Node.propTypes = {
 function mapDispatchToNodeProps(dispatch){
     let setExpanded = actions.setExpanded;
     let selectNode = actions.selectNode;
-    return bindActionCreators({ setExpanded,selectNode }, dispatch)
+    let logNode = actions.logNode;
+    return bindActionCreators({ setExpanded,selectNode,logNode }, dispatch)
 }
 function select(node,states){
     var copy = Object.assign({},node);

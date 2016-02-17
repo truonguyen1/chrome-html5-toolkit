@@ -43,14 +43,16 @@ class AppContainer extends  Component{
         );
     }
     render(){
-        const {inspectMode=false,setInspectMode} = this.props;
+        const {inspectMode=false,setInspectMode,refresh,highlightMode,setHighlightOnSelection} = this.props;
 
         return(
             <div className="panel-container">
                 <div className="panel-header">
                     <Toolbar
                         toggleInspect={()=>setInspectMode(!inspectMode)}
-                        inspectMode={inspectMode}>
+                        onHighlightClick={()=>setHighlightOnSelection(!highlightMode)}
+                        onRefreshClick={()=>refresh()}
+                        inspectMode={inspectMode} highlightMode={highlightMode}>
                     </Toolbar>
                 </div>
                 <div className="panel-body">
@@ -79,9 +81,11 @@ function mapDispatchToAppProps(dispatch){
     let setSelectionExpanded = actions.setSelectionExpanded;
     let moveSelectionDown = actions.moveSelectionDown;
     let moveSelectionUp = actions.moveSelectionUp;
-    return bindActionCreators({ setInspectMode,setSelectionExpanded,moveSelectionDown,moveSelectionUp}, dispatch)
+    let setHighlightOnSelection = actions.setHighlightOnSelection;
+    let refresh = actions.refresh;
+    return bindActionCreators({ setInspectMode,setSelectionExpanded,moveSelectionDown,moveSelectionUp,refresh,setHighlightOnSelection}, dispatch)
 }
 function mapStateToAppProps(state){
-    return {inspectMode:state.modes.inspectMode};
+    return {inspectMode:state.modes.inspectMode,highlightMode:state.modes.highlightMode};
 }
 export default connect(mapStateToAppProps,mapDispatchToAppProps)(AppContainer);

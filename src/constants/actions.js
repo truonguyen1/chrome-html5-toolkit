@@ -154,3 +154,27 @@ export function setListData(data,path){
         'data':data
     }
 }
+
+export const REFRESH = 'REFRESH';
+export function refresh(){
+    return {
+        'type': REFRESH
+    }
+}
+
+export const SET_HIGHLIGHT_MODE = 'SET_HIGHLIGHT_MODE';
+export function setHighlightOnSelection(bool){
+    return {
+        'type': SET_HIGHLIGHT_MODE,
+        'value':bool
+    }
+}
+
+export const LOG_NODE = 'LOG_NODE';
+export function logNode(id,path){
+    return {
+        'type': LOG_NODE,
+        'id':id,
+        'path':path
+    }
+}

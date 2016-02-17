@@ -13,14 +13,14 @@ class AppContainer extends  Component{
         super(props)
     }
     render(){
-        const {inspectMode=false,x,y,width,height} = this.props;
+        const {inspectMode=false,x,y,width,height,highlightMode = false} = this.props;
         var styles = {
             left:x+'px',
             top:y+'px',
             width:width+'px',
             height:height+'px'
         }
-        if(inspectMode)
+        if(highlightMode)
             return( <div style={styles} className="node-box"> </div> );
         return null;
     }
@@ -32,6 +32,13 @@ function mapDispatchToAppProps(dispatch){
     return bindActionCreators({}, dispatch)
 }
 function mapStateToAppProps(state){
-    return {inspectMode:state.inspectMode,x:state.node.x,y:state.node.y,width:state.node.width,height:state.node.height};
+    return {
+        inspectMode:state.inspectMode,
+        highlightMode:state.highlightMode,
+        x:state.node.x,
+        y:state.node.y,
+        width:state.node.width,
+        height:state.node.height
+    };
 }
 export default connect(mapStateToAppProps,mapDispatchToAppProps)(AppContainer);
