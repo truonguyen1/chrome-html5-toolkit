@@ -180,7 +180,14 @@ function treeStateReducer(tReducer){
             case actions.SELECT_NODE:{
                 var copy = Object.assign({},_default,prevState);
                 var nodeId = action.nodeId;
+                if(copy.selectedId==nodeId) return prevState;
                 if(nodeId==null)return prevState;
+                var parentId = nodeId;
+                while(parentId=findParent(copy.list,parentId)){
+                    if(copy.expandedIds.indexOf(parentId)==-1){
+                        copy.expandedIds.push(parentId);
+                    }
+                }
                 copy.selectedId = nodeId;
                 return copy;
             }

@@ -2,9 +2,11 @@ oldProto = geotoolkit.plot.Plot.prototype;
 oldConstructor = geotoolkit.plot.Plot.constructor;
 oldDispose = oldProto.dispose;
 ID_EXT_KEY='__CHROME_EXT_ID';
+ID_EXT_LVL_KEY='__CHROME_EXT_LVL';
 geotoolkit.plot.Plot = function(options) {
     oldConstructor.call(this,options);
     geotoolkit.plot.Plot.instances.push(this);
+    updateTreeExtension();
 };
 oldProto.dispose = function(){
     oldDispose.apply(this,arguments);
@@ -25,16 +27,17 @@ geotoolkit.plot.Plot.getJSON = function(){
     for(var i=0;i<geotoolkit.plot.Plot.instances.length;i++){
         var childNode = geotoolkit.plot.Plot.instances[i].getRoot();
         if(childNode==null)continue;
-        var childJson = traverseToolkitNode(childNode,function(node){
+        var childJson = traverseToolkitNode(childNode,function(node,lv){
             var id = 'node-'+(counter++);
             node[ID_EXT_KEY] =id;
+            node[ID_EXT_LVL_KEY]= lv;
             return {
                 'id':id,
                 'name':node.getClassName()
             };
         },function(o){
             treeObj[o['id']]= o;
-        });
+        },0);
         rootIds.push(childJson['id']);
     }
     treeObj['root'] = {'id':'root','name':'Root','childrenIds':rootIds};
@@ -73,6 +76,12 @@ window.findNode = function(id){
     }
     return null;
 };
+
+/**
+ * Get toolkit node size and position information
+ * @param {geotoolkit.scene.Node} node
+ * @returns {object}
+ */
 window.getNodeBounds = function(node){
     if(!node.getRoot || node.getRoot()==null) return null;
     var root = node.getRoot();
@@ -88,64 +97,192 @@ window.getNodeBounds = function(node){
     var x = canvas.offset().left -$(window).scrollLeft();
     var y = canvas.offset().top -$(window).scrollTop();
     var w=0,h=0;
-    if(node.getDeviceLimits) {
-        var limits = node.getDeviceLimits()
 
-        x += limits.getX();
-        y +=limits.getY();
-        w = node.getDeviceLimits().getWidth();
-        h = node.getDeviceLimits().getHeight();
+   if(node.getBounds && node.getBounds()!=null && node.getSceneTransform()!=null){
+        var bounds = node.getModelLimits && node.getModelLimits()!=null?node.getModelLimits(): node.getBounds();
+        var st = node.getSceneTransform();
+        bounds = st.transformRect(bounds);
+        x += bounds.getX();
+        y +=bounds.getY();
+        w = bounds.getWidth();
+        h = bounds.getHeight();
     }
     return {x:x,y:y,width:w,height:h};
 
 }
-document.addEventListener("messageFromExtension", function(event) {
-    var message = event.detail;
-    switch(message.type){
-        case 'SELECT_NODE':{
-            var path = message['path'];
-            if(path!=='tree')return;
-            var nodeId = message['nodeId'];
-            var selection = message['selection'];
-            var node = findNode(nodeId);
-            if(node==null)return;
-            var json = getAttrJSON(node);
-            var pos = getNodeBounds(node);
-            if(pos!=null) {
-                sendMessageToContentScript({
-                    'type': 'HIGHLIGHT_NODE',
-                    'node':pos
-                });
-            }
-            sendMessageToExtension({
-                'type': 'SET_LIST_DATA',
-                'path': 'attrs',
-                'data': json
-            });
 
+function getSelectionFromPlot(x,y,plot){
+    var canvas = plot.getCanvas();
+    var rect = canvas.getBoundingClientRect();
+    var posX = x-rect.left;
+    var posY = y-rect.top;
+    if(posX<0 || posY<0 || posX>rect.width || posY>rect.height)return null;
+    var selections = [];
+    var bounds,st,contains;
+    geotoolkit.selection.from(plot.getRoot()).where(function(node){
+        if(!(node instanceof geotoolkit.scene.Node))return false;
+        bounds = node.getModelLimits && node.getModelLimits()!=null?node.getModelLimits(): (node.getBounds?node.getBounds():null);
+        if(bounds==null)return false;
+        st = node.getSceneTransform();
+        bounds = st.transformRect(bounds);
+        contains = bounds.contains(posX,posY);
+        if(!contains)return false;
+        if(node instanceof geotoolkit.scene.CompositeNode){
+            selections.unshift(node);
+        }else{
+            selections.push(node)
+        }
+        selections.sort(function(a,b){
+            if(a[ID_EXT_LVL_KEY]<b[ID_EXT_LVL_KEY])return -1;
+            else if(a[ID_EXT_LVL_KEY]>b[ID_EXT_LVL_KEY])return 1;
+            return 0;
+        })
+    }).execute();
+
+    return selections;
+}
+function getSelected(x,y){
+    var nodes = null;
+    for(var i=0;i<geotoolkit.plot.Plot.instances.length;i++){
+        nodes = getSelectionFromPlot(x,y,geotoolkit.plot.Plot.instances[i]);
+        if(nodes!=null)break;
+    }
+    if(nodes==null)return null;
+    if(nodes.length==0)return null;
+    selected = nodes[nodes.length-1];
+    return selected;
+}
+
+var _SelectionTool = function (){
+    var activated = false;
+
+    var clickHandler = function(evt){
+        var clientX = evt.clientX;
+        var clientY = evt.clientY;
+
+        var selected = getSelected(clientX,clientY);
+        if(selected==null)return;
+
+        sendMessageToExtension({
+            'type': 'SELECT_NODE',
+            'path': 'tree',
+            'nodeId':selected[ID_EXT_KEY],
+            'selection':true
+        });
+
+    };
+    var moveHandler = function(evt){
+        var clientX = evt.clientX;
+        var clientY = evt.clientY;
+
+        var selected = getSelected(clientX,clientY);
+        if(selected==null)return;
+
+        var pos = getNodeBounds(selected);
+        if(pos==null)return;
+
+        sendMessageToContentScript({
+            'type': 'HIGHLIGHT_NODE',
+            'node':pos
+        });
+
+    }
+    return {
+        activate:function(bool){
+            activated = bool;
+            document.removeEventListener("mousemove", moveHandler);
+            document.removeEventListener("mouseup", clickHandler);
+            if(bool){
+                document.addEventListener("mousemove", moveHandler);
+                document.addEventListener("mouseup", clickHandler);
+            }
         }
     }
-    console.log("Page Received ", event.detail, " from ContentScript");
+}();
+
+
+/**
+ * Process event/action from chrome extension or contentscript
+ * @param message
+ */
+var handleMessageFromExtension = function (){
+    var _lastSelectedID = null;
+    return function fn(message) {
+        switch (message.type) {
+            case 'REFRESH':
+            {
+                updateTreeExtension();
+                break;
+            }
+            case 'SET_INSPECT_MODE':
+            {
+                var mode = message['value'];
+                _SelectionTool.activate(mode);
+            }
+            case 'LOG_NODE':
+            {
+                var path = message['path'];
+                var id = message['id'];
+                var node = findNode(id);
+                if (node == null)return;
+                __LOGGED_NODE = node;
+                console.log('LOG_NODE', __LOGGED_NODE);
+                break;
+            }
+            case 'SELECT_NODE':
+            {
+                var path = message['path'];
+                if (path !== 'tree')return;
+                var nodeId = message['nodeId'];
+                if(nodeId===_lastSelectedID)return;
+                var selection = message['selection'];
+                var node = findNode(nodeId);
+                if (node == null)return;
+                _lastSelectedID = nodeId;
+                var pos = getNodeBounds(node);
+                if (pos != null) {
+                    sendMessageToContentScript({
+                        'type': 'HIGHLIGHT_NODE',
+                        'node': pos
+                    });
+                }
+                var json = getAttrJSON(node);
+                sendMessageToExtension({
+                    'type': 'SET_LIST_DATA',
+                    'path': 'attrs',
+                    'data': json
+                });
+                break;
+
+            }
+        }
+        console.log("Page Received ", event.detail, " from ContentScript");
+    }
+}();
+document.addEventListener("messageFromExtension", function(event) {
+    var message = event.detail;
+    handleMessageFromExtension(message);
 }, false);
 
 window.getName = function(value){
     if(value.getClassName) return value.getClassName()
 };
 
+var ___ATTR_COUNTER = 0;
+function getNodeInfo(name,value){
+    var id = 'attr-'+(___ATTR_COUNTER++);
+    //value['__CHROME_EXT_ID'] =id;
+    name += ': '+(value!=null?value.toString():'');
+    return {
+        'id':id,
+        'name':name
+    }
+}
 window.getAttrJSON = function(node){
     var obj = {};
-    var counter = 0;
-    var ids =[];
-    traverseToolkitAttributes(node,function(name,value){
-        var id = 'attr-'+(counter++);
-        //value['__CHROME_EXT_ID'] =id;
-        name += ': '+(value!=null?value.toString():'');
-        return {
-            'id':id,
-            'name':name
-        }
 
-    },function(o){
+    var ids =[];
+    traverseToolkitAttributes(node,getNodeInfo,function(o){
         obj[o['id']] = o;
         ids.push(o['id']);
     });
@@ -159,9 +296,9 @@ window.traverseToolkitAttributes = function(node,callback,addCallback){
         addCallback(obj);
     }
 };
-window.traverseToolkitNode = function(node,getNodeInfo,addNode){
+window.traverseToolkitNode = function(node,getNodeInfo,addNode,lv){
     if(typeof getNodeInfo !=='function')return{};
-    var obj = getNodeInfo(node);
+    var obj = getNodeInfo(node,lv);
     addNode(obj);
     if(!(node instanceof geotoolkit.scene.CompositeNode)){
         return obj;
@@ -169,7 +306,7 @@ window.traverseToolkitNode = function(node,getNodeInfo,addNode){
     obj.childrenIds = [];
     var child;
     for(var i=0;i<node.getChildrenCount();i++){
-        child = traverseToolkitNode(node.getChild(i),getNodeInfo,addNode);
+        child = traverseToolkitNode(node.getChild(i),getNodeInfo,addNode,lv+1);
         obj.childrenIds.push(child['id']);
     }
     return obj;

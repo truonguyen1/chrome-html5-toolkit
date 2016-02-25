@@ -21,6 +21,16 @@ function sendStateChange({ getState,dispatch }) {
             });
             console.log("Panel sent ",action.type," to Background ",action);
         }
+        //var script = "";
+        //chrome.devtools.inspectedWindow.eval(
+        //    script,
+        //    function(result, isException) {
+        //        if (isException)
+        //            console.log("the page is not using Geotoolkit");
+        //        else
+        //            console.log("The page is using geotoolkit");
+        //    }
+        //);
         // This will likely be the action itself, unless
         // a middleware further in chain changed it.
         return returnValue
