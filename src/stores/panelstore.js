@@ -4,6 +4,7 @@
 
 import {createStore, applyMiddleware} from 'redux';
 import * as actions from './../constants/actions';
+import clientPlugin from './clientplugin';
 let _store =null;
 let _backgroundConnection = null;
 function sendStateChange({ getState,dispatch }) {
@@ -12,6 +13,7 @@ function sendStateChange({ getState,dispatch }) {
         let returnValue = next(action);
 
         let curState = getState();
+        clientPlugin.process(action,curState,dispatch);
 
         if(action.type !== actions.SEND_TO_CONTENT_SCRIPT){
             _backgroundConnection.postMessage({
@@ -21,22 +23,10 @@ function sendStateChange({ getState,dispatch }) {
             });
             console.log("Panel sent ",action.type," to Background ",action);
         }
-        //var script = "";
-        //chrome.devtools.inspectedWindow.eval(
-        //    script,
-        //    function(result, isException) {
-        //        if (isException)
-        //            console.log("the page is not using Geotoolkit");
-        //        else
-        //            console.log("The page is using geotoolkit");
-        //    }
-        //);
-        // This will likely be the action itself, unless
-        // a middleware further in chain changed it.
+
         return returnValue
     }
 }
-
 export function createPanelStore(reducer){
     let createStoreWithMiddleware = applyMiddleware(sendStateChange)(createStore);
     if(_store==null){

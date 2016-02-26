@@ -15,7 +15,6 @@ import AppContainer from './components/contentscript/appcontainer';
 var store = createContentScriptStore(contentScript);
 var DIV = document.createElement("DIV");
 document.body.appendChild(DIV);
-
 ReactDOM.render(
     <Provider store={store}>
         <AppContainer>

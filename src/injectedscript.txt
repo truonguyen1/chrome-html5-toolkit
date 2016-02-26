@@ -1,313 +1,338 @@
-oldProto = geotoolkit.plot.Plot.prototype;
-oldConstructor = geotoolkit.plot.Plot.constructor;
-oldDispose = oldProto.dispose;
-ID_EXT_KEY='__CHROME_EXT_ID';
-ID_EXT_LVL_KEY='__CHROME_EXT_LVL';
-geotoolkit.plot.Plot = function(options) {
-    oldConstructor.call(this,options);
-    geotoolkit.plot.Plot.instances.push(this);
-    updateTreeExtension();
+window.injectToolkit = function() {
+	var ID_EXT_KEY = '__CHROME_EXT_ID';
+	var ID_EXT_LVL_KEY = '__CHROME_EXT_LVL';
+	var ___ATTR_COUNTER = 0;
+
+	var oldProto = geotoolkit.plot.Plot.prototype;
+	var oldConstructor = geotoolkit.plot.Plot.constructor;
+	var oldDispose = oldProto.dispose;
+	var oldSetRoot = oldProto.setRoot;
+
+	geotoolkit.plot.Plot = function (options) {
+		oldConstructor.call(this, options);
+		geotoolkit.plot.Plot.instances.push(this);
+		if(this.getRoot()!=null){
+		     this.getRoot().on(geotoolkit.scene.Node.Events.ChildAdded,window.updateTreeExtension);
+             this.getRoot().on(geotoolkit.scene.Node.Events.ChildRemoved,window.updateTreeExtension);
+		}
+		window.updateTreeExtension();
+	};
+	oldProto.setRoot = function (root) {
+	    if(this.getRoot()!=null){
+	        this.getRoot().off(geotoolkit.scene.Node.Events.ChildAdded,window.updateTreeExtension);
+            this.getRoot().off(geotoolkit.scene.Node.Events.ChildRemoved,window.updateTreeExtension);
+	    }
+	    root.on(geotoolkit.scene.Node.Events.ChildAdded,window.updateTreeExtension);
+    	root.on(geotoolkit.scene.Node.Events.ChildRemoved,window.updateTreeExtension);
+	    return oldSetRoot.apply(this, arguments);
+	};
+	oldProto.dispose = function () {
+         if(this.getRoot()!=null){
+            this.getRoot().off(geotoolkit.scene.Node.Events.ChildAdded,window.updateTreeExtension);
+            this.getRoot().off(geotoolkit.scene.Node.Events.ChildRemoved,window.updateTreeExtension);
+         }
+		oldDispose.apply(this, arguments);
+		var index = geotoolkit.plot.Plot.instances.indexOf(this);
+		if (index != -1) {
+			geotoolkit.plot.Plot.instances.splice(index, 1);
+		}
+		window.updateTreeExtension();
+	};
+
+	geotoolkit.plot.Plot.prototype = oldProto;
+	geotoolkit.plot.Plot.contructor = geotoolkit.plot.Plot;
+	geotoolkit.plot.Plot.instances = [];
+	geotoolkit.plot.Plot.getJSON = function () {
+		var counter = 0;
+		var treeObj = {};
+		var rootIds = [];
+		for (var i = 0; i < geotoolkit.plot.Plot.instances.length; i++) {
+			var childNode = geotoolkit.plot.Plot.instances[i].getRoot();
+			if (childNode == null)continue;
+			var childJson = traverseToolkitNode(childNode, function (node, lv) {
+				var id = 'node-' + (counter++);
+				node[ID_EXT_KEY] = id;
+				node[ID_EXT_LVL_KEY] = lv;
+				return {
+					'id': id,
+					'name': node.getClassName()
+				};
+			}, function (o) {
+				treeObj[o['id']] = o;
+			}, 0);
+			rootIds.push(childJson['id']);
+		}
+		treeObj['root'] = {'id': 'root', 'name': 'Root', 'childrenIds': rootIds};
+		return treeObj;
+	};
+	window.findNode = function (id) {
+		var plots = geotoolkit.plot.Plot.instances;
+		for (var i = 0; i < plots.length; i++) {
+			var root = plots[i].getRoot();
+			if (root == null)continue;
+			var found = geotoolkit.selection.from(root).where(function (node) {
+				return node[ID_EXT_KEY] == id
+			}).selectFirst();
+			if (found != null)return found;
+		}
+		return null;
+	};
+	window.getNodeBounds = function (node) {
+		if (!node.getRoot || node.getRoot() == null) return null;
+		var root = node.getRoot();
+		var plots = geotoolkit.plot.Plot.instances;
+		var canvas;
+		for (var i = 0; i < plots.length; i++) {
+			if (plots[i].getRoot() === root) {
+				canvas = plots[i].getCanvas();
+			}
+		}
+		if (canvas == null)return null;
+		var rect = canvas.getBoundingClientRect();
+		var x =rect.left;
+		var y = rect.top;
+		var w = 0, h = 0;
+
+		if (node.getBounds && node.getBounds() != null && node.getSceneTransform() != null) {
+			var bounds = node.getModelLimits && node.getModelLimits() != null ? node.getModelLimits() : node.getBounds();
+			var st = node.getSceneTransform();
+			bounds = st.transformRect(bounds);
+			x += bounds.getX();
+			y += bounds.getY();
+			w = bounds.getWidth();
+			h = bounds.getHeight();
+		}
+		return {x: x, y: y, width: w, height: h};
+
+	};
+
+	window.getSelectionFromPlot = function (x, y, plot) {
+		var canvas = plot.getCanvas();
+		var rect = canvas.getBoundingClientRect();
+		var posX = x - rect.left;
+		var posY = y - rect.top;
+		if (posX < 0 || posY < 0 || posX > rect.width || posY > rect.height)return null;
+		var selections = [];
+		var bounds, st, contains;
+		geotoolkit.selection.from(plot.getRoot()).where(function (node) {
+			if (!(node instanceof geotoolkit.scene.Node))return false;
+			bounds = node.getModelLimits && node.getModelLimits() != null ? node.getModelLimits() : (node.getBounds ? node.getBounds() : null);
+			if (bounds == null)return false;
+			st = node.getSceneTransform();
+			bounds = st.transformRect(bounds);
+			contains = bounds.contains(posX, posY);
+			if (!contains)return false;
+			if (node instanceof geotoolkit.scene.CompositeNode) {
+				selections.unshift(node);
+			} else {
+				selections.push(node)
+			}
+			selections.sort(function (a, b) {
+				if (a[ID_EXT_LVL_KEY] < b[ID_EXT_LVL_KEY])return -1;
+				else if (a[ID_EXT_LVL_KEY] > b[ID_EXT_LVL_KEY])return 1;
+				return 0;
+			})
+		}).execute();
+
+		return selections;
+	};
+	window.getSelected = function (x, y) {
+		var nodes = null;
+		for (var i = 0; i < geotoolkit.plot.Plot.instances.length; i++) {
+			nodes = getSelectionFromPlot(x, y, geotoolkit.plot.Plot.instances[i]);
+			if (nodes != null)break;
+		}
+		if (nodes == null)return null;
+		if (nodes.length == 0)return null;
+		selected = nodes[nodes.length - 1];
+		return selected;
+	};
+
+	window.getName = function (value) {
+		if (value.getClassName) return value.getClassName()
+	};
+
+	window.getNodeInfo = function (name, value) {
+		var id = 'attr-' + (___ATTR_COUNTER++);
+		//value['__CHROME_EXT_ID'] =id;
+		name += ': ' + (value != null ? value.toString() : '');
+		return {
+			'id': id,
+			'name': name
+		}
+	};
+	window.getAttrJSON = function (node) {
+		var obj = {};
+
+		var ids = [];
+		traverseToolkitAttributes(node, getNodeInfo, function (o) {
+			obj[o['id']] = o;
+			ids.push(o['id']);
+		});
+		obj['root'] = {'id': 'root', 'name': node.getClassName(), 'childrenIds': ids};
+		return obj;
+	};
+	window.traverseToolkitAttributes = function (node, callback, addCallback) {
+		if (typeof callback !== 'function')return {};
+		for (var name in node) {
+			var obj = callback(name, node[name]);
+			addCallback(obj);
+		}
+	};
+	window.traverseToolkitNode = function (node, getNodeInfo, addNode, lv) {
+		if (typeof getNodeInfo !== 'function')return {};
+		var obj = getNodeInfo(node, lv);
+		addNode(obj);
+		if (!(node instanceof geotoolkit.scene.CompositeNode)) {
+			return obj;
+		}
+		obj.childrenIds = [];
+		var child;
+		for (var i = 0; i < node.getChildrenCount(); i++) {
+			child = traverseToolkitNode(node.getChild(i), getNodeInfo, addNode, lv + 1);
+			obj.childrenIds.push(child['id']);
+		}
+		return obj;
+	};
+	var _SelectionTool = function (){
+		var activated = false;
+
+		var clickHandler = function(evt){
+			var clientX = evt.clientX;
+			var clientY = evt.clientY;
+
+			var selected = window.getSelected(clientX,clientY);
+			if(selected==null)return;
+
+			sendMessageToExtension({
+				'type': 'SELECT_NODE',
+				'path': 'tree',
+				'nodeId':selected[ID_EXT_KEY],
+				'selection':true
+			});
+
+		};
+		var moveHandler = function(evt){
+			var clientX = evt.clientX;
+			var clientY = evt.clientY;
+
+			var selected = getSelected(clientX,clientY);
+			if(selected==null)return;
+
+			var pos = window.getNodeBounds(selected);
+			if(pos==null)return;
+
+			sendMessageToContentScript({
+				'type': 'HIGHLIGHT_NODE',
+				'node':pos
+			});
+
+		}
+		return {
+			activate:function(bool){
+				activated = bool;
+				document.removeEventListener("mousemove", moveHandler);
+				document.removeEventListener("mouseup", clickHandler);
+				if(bool){
+					document.addEventListener("mousemove", moveHandler);
+					document.addEventListener("mouseup", clickHandler);
+				}
+			}
+		}
+	}();
+
+
+	var handleMessageFromExtension = function (){
+		var _lastSelectedID = null;
+		return function fn(message) {
+			switch (message.type) {
+				case 'REFRESH':
+				{
+					window.updateTreeExtension();
+					break;
+				}
+				case 'SET_INSPECT_MODE':
+				{
+					var mode = message['value'];
+					_SelectionTool.activate(mode);
+				}
+				case 'LOG_NODE':
+				{
+					var path = message['path'];
+					var id = message['id'];
+					var node = findNode(id);
+					if (node == null)return;
+					__LOGGED_NODE = node;
+					console.log('LOG_NODE', __LOGGED_NODE);
+					break;
+				}
+				case 'SELECT_NODE':
+				{
+					var path = message['path'];
+					if (path !== 'tree')return;
+					var nodeId = message['nodeId'];
+					if(nodeId===_lastSelectedID)return;
+					var selection = message['selection'];
+					var node = findNode(nodeId);
+					if (node == null)return;
+					_lastSelectedID = nodeId;
+					var pos = window.getNodeBounds(node);
+					if (pos != null) {
+						window.sendMessageToContentScript({
+							'type': 'HIGHLIGHT_NODE',
+							'node': pos
+						});
+					}
+					var json = getAttrJSON(node);
+					window.sendMessageToExtension({
+						'type': 'SET_LIST_DATA',
+						'path': 'attrs',
+						'data': json
+					});
+					break;
+
+				}
+			}
+			console.log("Page Received ", event.detail, " from ContentScript");
+		}
+	}();
+	document.addEventListener("messageFromExtension", function(event) {
+		var message = event.detail;
+		handleMessageFromExtension(message);
+	}, false);
+
+	window.updateTreeExtension = function(){
+		var data = geotoolkit.plot.Plot.getJSON();
+		sendMessageToExtension({
+			'type': 'SET_LIST_DATA',
+			'path': 'tree',
+			'data':data
+		});
+	};
+
+	window.sendMessageToExtension = function(message){
+		var event = new CustomEvent('messageToExtension', {
+			'detail': message
+		});
+		document.dispatchEvent(event);
+	};
+	window.sendMessageToContentScript = function(message){
+		var event = new CustomEvent('messageToContentScript', {
+			'detail': message
+		});
+		document.dispatchEvent(event);
+	};
 };
-oldProto.dispose = function(){
-    oldDispose.apply(this,arguments);
-    var index = geotoolkit.plot.Plot.instances.indexOf(this);
-    if(index!=-1) {
-        geotoolkit.plot.Plot.instances.splice(index, 1);
-    }
-    updateTreeExtension();
+
+window.detectIntToolKit =function(){
+	if(typeof geotoolkit =='object'){
+		if(!geotoolkit.___INJECTED){
+			window.injectToolkit();
+			geotoolkit.___INJECTED = true;
+		}
+		return;
+	}
+	window.requestAnimationFrame(window.detectIntToolKit);
 }
 
-geotoolkit.plot.Plot.prototype = oldProto;
-geotoolkit.plot.Plot.contructor =geotoolkit.plot.Plot;
-geotoolkit.plot.Plot.instances = [];
-geotoolkit.plot.Plot.getJSON = function(){
-    var counter = 0;
-    var treeObj = {};
-    var rootIds = [];
-    for(var i=0;i<geotoolkit.plot.Plot.instances.length;i++){
-        var childNode = geotoolkit.plot.Plot.instances[i].getRoot();
-        if(childNode==null)continue;
-        var childJson = traverseToolkitNode(childNode,function(node,lv){
-            var id = 'node-'+(counter++);
-            node[ID_EXT_KEY] =id;
-            node[ID_EXT_LVL_KEY]= lv;
-            return {
-                'id':id,
-                'name':node.getClassName()
-            };
-        },function(o){
-            treeObj[o['id']]= o;
-        },0);
-        rootIds.push(childJson['id']);
-    }
-    treeObj['root'] = {'id':'root','name':'Root','childrenIds':rootIds};
-    return treeObj;
-};
-____LAS_DATA = null;
-window.updateTreeExtension = function(){
-    ____LAS_DATA = geotoolkit.plot.Plot.getJSON();
-    sendMessageToExtension({
-        'type': 'SET_LIST_DATA',
-        'path': 'tree',
-        'data': ____LAS_DATA
-    });
-};
-window.sendMessageToExtension = function(message){
-    var event = new CustomEvent('messageToExtension', {
-        'detail': message
-    });
-    document.dispatchEvent(event);
-};
-window.sendMessageToContentScript = function(message){
-    var event = new CustomEvent('messageToContentScript', {
-        'detail': message
-    });
-    document.dispatchEvent(event);
-};
-window.findNode = function(id){
-    var plots = geotoolkit.plot.Plot.instances;
-    for(var i=0;i<plots.length;i++){
-        var root = plots[i].getRoot();
-        if(root==null)continue;
-        var found =  geotoolkit.selection.from(root).where(function(node){
-            return node[ID_EXT_KEY] == id
-        }).selectFirst();
-        if(found!=null)return found;
-    }
-    return null;
-};
-
-/**
- * Get toolkit node size and position information
- * @param {geotoolkit.scene.Node} node
- * @returns {object}
- */
-window.getNodeBounds = function(node){
-    if(!node.getRoot || node.getRoot()==null) return null;
-    var root = node.getRoot();
-    var plots = geotoolkit.plot.Plot.instances;
-    var canvas;
-    for(var i=0;i<plots.length;i++){
-        if(plots[i].getRoot()===root){
-            canvas = plots[i].getCanvas();
-        }
-    }
-    if(canvas==null)return null;
-    canvas = $(canvas);
-    var x = canvas.offset().left -$(window).scrollLeft();
-    var y = canvas.offset().top -$(window).scrollTop();
-    var w=0,h=0;
-
-   if(node.getBounds && node.getBounds()!=null && node.getSceneTransform()!=null){
-        var bounds = node.getModelLimits && node.getModelLimits()!=null?node.getModelLimits(): node.getBounds();
-        var st = node.getSceneTransform();
-        bounds = st.transformRect(bounds);
-        x += bounds.getX();
-        y +=bounds.getY();
-        w = bounds.getWidth();
-        h = bounds.getHeight();
-    }
-    return {x:x,y:y,width:w,height:h};
-
-}
-
-function getSelectionFromPlot(x,y,plot){
-    var canvas = plot.getCanvas();
-    var rect = canvas.getBoundingClientRect();
-    var posX = x-rect.left;
-    var posY = y-rect.top;
-    if(posX<0 || posY<0 || posX>rect.width || posY>rect.height)return null;
-    var selections = [];
-    var bounds,st,contains;
-    geotoolkit.selection.from(plot.getRoot()).where(function(node){
-        if(!(node instanceof geotoolkit.scene.Node))return false;
-        bounds = node.getModelLimits && node.getModelLimits()!=null?node.getModelLimits(): (node.getBounds?node.getBounds():null);
-        if(bounds==null)return false;
-        st = node.getSceneTransform();
-        bounds = st.transformRect(bounds);
-        contains = bounds.contains(posX,posY);
-        if(!contains)return false;
-        if(node instanceof geotoolkit.scene.CompositeNode){
-            selections.unshift(node);
-        }else{
-            selections.push(node)
-        }
-        selections.sort(function(a,b){
-            if(a[ID_EXT_LVL_KEY]<b[ID_EXT_LVL_KEY])return -1;
-            else if(a[ID_EXT_LVL_KEY]>b[ID_EXT_LVL_KEY])return 1;
-            return 0;
-        })
-    }).execute();
-
-    return selections;
-}
-function getSelected(x,y){
-    var nodes = null;
-    for(var i=0;i<geotoolkit.plot.Plot.instances.length;i++){
-        nodes = getSelectionFromPlot(x,y,geotoolkit.plot.Plot.instances[i]);
-        if(nodes!=null)break;
-    }
-    if(nodes==null)return null;
-    if(nodes.length==0)return null;
-    selected = nodes[nodes.length-1];
-    return selected;
-}
-
-var _SelectionTool = function (){
-    var activated = false;
-
-    var clickHandler = function(evt){
-        var clientX = evt.clientX;
-        var clientY = evt.clientY;
-
-        var selected = getSelected(clientX,clientY);
-        if(selected==null)return;
-
-        sendMessageToExtension({
-            'type': 'SELECT_NODE',
-            'path': 'tree',
-            'nodeId':selected[ID_EXT_KEY],
-            'selection':true
-        });
-
-    };
-    var moveHandler = function(evt){
-        var clientX = evt.clientX;
-        var clientY = evt.clientY;
-
-        var selected = getSelected(clientX,clientY);
-        if(selected==null)return;
-
-        var pos = getNodeBounds(selected);
-        if(pos==null)return;
-
-        sendMessageToContentScript({
-            'type': 'HIGHLIGHT_NODE',
-            'node':pos
-        });
-
-    }
-    return {
-        activate:function(bool){
-            activated = bool;
-            document.removeEventListener("mousemove", moveHandler);
-            document.removeEventListener("mouseup", clickHandler);
-            if(bool){
-                document.addEventListener("mousemove", moveHandler);
-                document.addEventListener("mouseup", clickHandler);
-            }
-        }
-    }
-}();
-
-
-/**
- * Process event/action from chrome extension or contentscript
- * @param message
- */
-var handleMessageFromExtension = function (){
-    var _lastSelectedID = null;
-    return function fn(message) {
-        switch (message.type) {
-            case 'REFRESH':
-            {
-                updateTreeExtension();
-                break;
-            }
-            case 'SET_INSPECT_MODE':
-            {
-                var mode = message['value'];
-                _SelectionTool.activate(mode);
-            }
-            case 'LOG_NODE':
-            {
-                var path = message['path'];
-                var id = message['id'];
-                var node = findNode(id);
-                if (node == null)return;
-                __LOGGED_NODE = node;
-                console.log('LOG_NODE', __LOGGED_NODE);
-                break;
-            }
-            case 'SELECT_NODE':
-            {
-                var path = message['path'];
-                if (path !== 'tree')return;
-                var nodeId = message['nodeId'];
-                if(nodeId===_lastSelectedID)return;
-                var selection = message['selection'];
-                var node = findNode(nodeId);
-                if (node == null)return;
-                _lastSelectedID = nodeId;
-                var pos = getNodeBounds(node);
-                if (pos != null) {
-                    sendMessageToContentScript({
-                        'type': 'HIGHLIGHT_NODE',
-                        'node': pos
-                    });
-                }
-                var json = getAttrJSON(node);
-                sendMessageToExtension({
-                    'type': 'SET_LIST_DATA',
-                    'path': 'attrs',
-                    'data': json
-                });
-                break;
-
-            }
-        }
-        console.log("Page Received ", event.detail, " from ContentScript");
-    }
-}();
-document.addEventListener("messageFromExtension", function(event) {
-    var message = event.detail;
-    handleMessageFromExtension(message);
-}, false);
-
-window.getName = function(value){
-    if(value.getClassName) return value.getClassName()
-};
-
-var ___ATTR_COUNTER = 0;
-function getNodeInfo(name,value){
-    var id = 'attr-'+(___ATTR_COUNTER++);
-    //value['__CHROME_EXT_ID'] =id;
-    name += ': '+(value!=null?value.toString():'');
-    return {
-        'id':id,
-        'name':name
-    }
-}
-window.getAttrJSON = function(node){
-    var obj = {};
-
-    var ids =[];
-    traverseToolkitAttributes(node,getNodeInfo,function(o){
-        obj[o['id']] = o;
-        ids.push(o['id']);
-    });
-    obj['root'] = {'id':'root','name':node.getClassName(),'childrenIds':ids};
-    return obj;
-};
-window.traverseToolkitAttributes = function(node,callback,addCallback){
-    if(typeof callback !=='function')return{};
-    for(var name in node){
-        var obj = callback(name,node[name]);
-        addCallback(obj);
-    }
-};
-window.traverseToolkitNode = function(node,getNodeInfo,addNode,lv){
-    if(typeof getNodeInfo !=='function')return{};
-    var obj = getNodeInfo(node,lv);
-    addNode(obj);
-    if(!(node instanceof geotoolkit.scene.CompositeNode)){
-        return obj;
-    }
-    obj.childrenIds = [];
-    var child;
-    for(var i=0;i<node.getChildrenCount();i++){
-        child = traverseToolkitNode(node.getChild(i),getNodeInfo,addNode,lv+1);
-        obj.childrenIds.push(child['id']);
-    }
-    return obj;
-};
+window.requestAnimationFrame(window.detectIntToolKit);

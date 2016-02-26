@@ -24,7 +24,19 @@ chrome.browserAction.onClicked.addListener(function(tab) {
         console.log(response);
     });
 });
-
+function sendPageUpdatedToPanel(tabId){
+    if (tabId in connections) {
+        connections[tabId].postMessage({
+            'type':actions.PAGE_UPDATED
+        });
+    } else {
+        console.log("Tab not found in connection list.");
+    }
+}
+chrome.webNavigation.onCompleted.addListener(function (obj){
+    var tabId = obj['tabId'];
+    sendPageUpdatedToPanel(tabId);
+});
 
 chrome.runtime.onConnect.addListener(function (port) {
 
@@ -35,6 +47,7 @@ chrome.runtime.onConnect.addListener(function (port) {
         console.log("Received ",message.type, " from DevTool", message);
         if (message.type == actions.HAND_SHAKE) {
             connections[message.tabId] = port;
+            sendPageUpdatedToPanel(message.tabId);
             return;
         }
         if (message.type == actions.SEND_TO_CONTENT_SCRIPT) {

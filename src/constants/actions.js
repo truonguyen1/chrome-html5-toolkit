@@ -95,6 +95,8 @@ export function toggleSelectedChildren(bool){
         'visible':bool
     }
 }
+export const PAGE_UPDATED = 'PAGE_UPDATED';
+
 export const SEND_TO_EXTENSION = 'SEND_TO_EXTENSION';
 export function sendToExtension(messsage){
     return {
