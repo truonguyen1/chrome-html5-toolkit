@@ -4,7 +4,7 @@
 }
 
 .panel-container{
-  font-size: 12px;
+  font-size: 11px;
   font-family: Verdana,sans-serif;
   top:0px;
   left:0px;
@@ -60,14 +60,21 @@
       top:0px;
       width: calc(~"300px - 5px");
       height: 100%;
-      overflow-x:hidden;
-      overflow-y:auto;
+      overflow: hidden;
       .panel-attributes-header{
         padding-left: 5px;
         height:30px;
         background: rgba(128, 128, 128, 0.12);
         border-bottom: 1px solid rgb(210, 210, 210);
         width:100%;
+      }
+      .panel-attributes-body{
+        position:absolute;
+        top:30px;
+        width:100%;
+        left:0px;
+        bottom:0px;
+        overflow: auto;
       }
     }
   }

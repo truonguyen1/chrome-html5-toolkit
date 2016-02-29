@@ -1,6 +1,6 @@
 window.injectToolkit = function() {
-	var ID_EXT_KEY = '__CHROME_EXT_ID';
-	var ID_EXT_LVL_KEY = '__CHROME_EXT_LVL';
+	var ID_EXT_KEY = '__INJECTED_KEY_NODE_ID';
+	var ID_EXT_LVL_KEY = '__INJECTED_KEY_NODE_LEVEL';
 	var ___ATTR_COUNTER = 0;
 
 	var oldProto = geotoolkit.plot.Plot.prototype;
@@ -161,15 +161,25 @@ window.injectToolkit = function() {
 			'name': name
 		}
 	};
-	window.getAttrJSON = function (node) {
-		var obj = {};
+	var STOP_LEVEL = 1;
 
-		var ids = [];
-		traverseToolkitAttributes(node, getNodeInfo, function (o) {
-			obj[o['id']] = o;
-			ids.push(o['id']);
-		});
-		obj['root'] = {'id': 'root', 'name': node.getClassName(), 'childrenIds': ids};
+	window.getAttrJSON = function (node,lvl) {
+	    if(lvl==null)lvl=0;
+	    if(node==null)return node;
+	    var type = typeof node;
+	    if(type==='function')return 'function';
+		if(type!='object'){
+		    return node;
+		}
+		if(lvl>STOP_LEVEL) return 'Object';
+		var obj = {};
+		if(Array.isArray(node)){
+		    obj = [];
+		}
+		for( var key in node){
+		    if(typeof node[key]=='function')continue;
+		    obj[key] = window.getAttrJSON(node[key],lvl+1);
+		}
 		return obj;
 	};
 	window.traverseToolkitAttributes = function (node, callback, addCallback) {
@@ -283,11 +293,12 @@ window.injectToolkit = function() {
 							'node': pos
 						});
 					}
+					var name =node.getClassName? node.getClassName():'Node';
 					var json = getAttrJSON(node);
 					window.sendMessageToExtension({
-						'type': 'SET_LIST_DATA',
-						'path': 'attrs',
-						'data': json
+						'type': 'SET_ATTRIBUTES',
+						'object': json,
+						'name':name
 					});
 					break;
 

@@ -42,7 +42,24 @@ let _nodes = {
         rootId:'root'
     }
 };
+let _defaultAttrs = {
+    'name':'root',
+    'value':null
+}
+function attrs(prevState=_defaultAttrs,action){
+    switch(action.type){
+        case 'SET_ATTRIBUTES':{
+            var copy =  Object.assign({}, prevState);
+            copy.name = action.name;
+            copy.value = action.object;
+            return copy;
+        }
+        default:
+            return prevState;
+    }
+}
 export default combineReducers({
     modes:modes,
+    attrs:attrs,
     nodes:instances(nodes,_nodes)
 });

@@ -114,10 +114,11 @@ export function addListItem(id,name){
 }
 
 export const SET_ATTRIBUTES = 'SET_ATTRIBUTES';
-export function setAttributes(attributes){
+export function setAttributes(attributes,name){
     return {
         'type': SET_ATTRIBUTES,
-        'attributes':attributes
+        'attributes':attributes,
+        'name':name
     }
 }
 

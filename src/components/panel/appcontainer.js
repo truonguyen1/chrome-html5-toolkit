@@ -6,6 +6,7 @@ import React,{Component,PropTypes} from 'react';
 import {connect} from 'react-redux';
 import Toolbar from './toolbar';
 import Node from './node';
+import JSONNode from './jsonnode';
 import * as actions from './../../constants/actions';
 import Css from './appcontainer.less';
 import { bindActionCreators } from 'redux'
@@ -34,7 +35,8 @@ class AppContainer extends  Component{
         }
     }
     renderAttributes(){
-        return (<Node id="root" path="attrs"></Node>);
+        const {attrName,attrValue} = this.props;
+        return (<JSONNode name={attrName} value={attrValue}></JSONNode>);
 
     }
     renderTree(){
@@ -64,7 +66,9 @@ class AppContainer extends  Component{
                         <div className="panel-attributes-view">
                             <div className="panel-attributes-header">Attributes</div>
                             <div className="panel-attributes-body" tabIndex="2" onKeyDown={this.handleKeyDown.bind(this,"attrs")}>
-                                {this.renderAttributes()}
+                                <div>
+                                    {this.renderAttributes()}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -86,6 +90,6 @@ function mapDispatchToAppProps(dispatch){
     return bindActionCreators({ setInspectMode,setSelectionExpanded,moveSelectionDown,moveSelectionUp,refresh,setHighlightOnSelection}, dispatch)
 }
 function mapStateToAppProps(state){
-    return {inspectMode:state.modes.inspectMode,highlightMode:state.modes.highlightMode};
+    return {inspectMode:state.modes.inspectMode,highlightMode:state.modes.highlightMode,attrName:state.attrs.name,attrValue:state.attrs.value};
 }
 export default connect(mapStateToAppProps,mapDispatchToAppProps)(AppContainer);
