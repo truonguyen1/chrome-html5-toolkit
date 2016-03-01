@@ -7,11 +7,11 @@ import ToolbarCss from './toolbar.less';
 export default class Toolbar extends  Component{
     render(){
         const {toggleInspect,inspectMode,highlightMode,onRefreshClick,onHighlightClick} = this.props;
-        var classes = 'btn btn-link inspect-btn';
+        var classes = 'btn btn-link btn-toolbar-action inspect-btn';
         if(inspectMode){
             classes +=' inspect-on';
         }
-        var highlight = 'btn btn-link';
+        var highlight = 'btn btn-link btn-toolbar-action';
         if(highlightMode){
             highlight +=' inspect-on'
         }
@@ -20,7 +20,7 @@ export default class Toolbar extends  Component{
                 <a onClick={toggleInspect} className={classes} >
                         <span className="glyphicon glyphicon-zoom-in"></span>
                 </a>
-                <a onClick={onRefreshClick} className='btn btn-link refresh-btn' >
+                <a onClick={onRefreshClick} className='btn btn-toolbar-action btn-link refresh-btn' >
                     <span className="glyphicon glyphicon-refresh"></span>
                 </a>
                 <a onClick={onHighlightClick} className={highlight} >

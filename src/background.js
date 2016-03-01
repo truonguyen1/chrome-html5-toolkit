@@ -14,14 +14,37 @@ import * as actions from './constants/actions';
 
 var connections = {};
 chrome.browserAction.onClicked.addListener(function(tab) {
-    var contentScript = require("raw!./injectedscript.txt");
+    var heapData,
+        debugId = {tabId:tab.id};
+    chrome.debugger.attach(debugId, '1.0', function() {
+        chrome.debugger.sendCommand(debugId, 'Debugger.enable', {}, function() {
+            function headerListener(source, name, data) {
+                if(source.tabId!=tab.id)return;
+                //if(source.tabId == tab.id && name == 'HeapProfiler.addProfileHeader') {
+                //    function chunkListener(source, name, data) {
+                //        if(name == 'HeapProfiler.addHeapSnapshotChunk') {
+                //            heapData += data.chunk;
+                //        } else if(name == 'HeapProfiler.finishHeapSnapshot') {
+                //            chrome.debugger.onEvent.removeListener(chunkListener);
+                //            chrome.debugger.detach(debugId);
+                            //do something with data
+                            //console.log('Collected ' + heapData.length + ' bytes of JSON data');
+                        //}
+                        //var uid = data.header.uid;
+                        //chrome.debugger.sendCommand(debuggerId, "HeapProfiler.getHeapSnapshot", { uid: uid }, function() {
+                        //    console.log("I never get called!");
+                        //});
+                        //chrome.debugger.onEvent.removeListener(listener);
 
-    //chrome.tabs.executeScript(tab.id,{ file: 'injectedscript.js' });
-    chrome.tabs.sendMessage(tab.id,{
-        type:"EXECUTE_SCRIPT",
-        content:contentScript
-    }, function(response) {
-        console.log(response);
+                    //}
+                    //chrome.debugger.onEvent.addListener(chunkListener);
+                    //chrome.debugger.sendCommand(debugId, 'HeapProfiler.getHeapSnapshot', {uid:data.header.uid, type:data.header.typeId});
+                //}
+                //chrome.debugger.onEvent.removeListener(headerListener);
+            }
+            chrome.debugger.onEvent.addListener(headerListener);
+            chrome.debugger.sendCommand(debugId, 'HeapProfiler.takeHeapSnapshot');
+        });
     });
 });
 function sendPageUpdatedToPanel(tabId){

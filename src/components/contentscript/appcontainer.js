@@ -20,7 +20,7 @@ class AppContainer extends  Component{
             width:width+'px',
             height:height+'px'
         }
-        if(highlightMode)
+        if(inspectMode || highlightMode)
             return( <div style={styles} className="node-box"> </div> );
         return null;
     }
