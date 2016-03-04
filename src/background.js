@@ -14,6 +14,7 @@ import * as actions from './constants/actions';
 
 var connections = {};
 chrome.browserAction.onClicked.addListener(function(tab) {
+    return;
     var heapData,
         debugId = {tabId:tab.id};
     chrome.debugger.attach(debugId, '1.0', function() {
