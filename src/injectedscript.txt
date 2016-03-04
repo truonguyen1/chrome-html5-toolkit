@@ -347,3 +347,5 @@ window.detectIntToolKit =function(){
 }
 
 window.requestAnimationFrame(window.detectIntToolKit);
+
+//# sourceURL=int-injected-script.js
