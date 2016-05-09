@@ -40,8 +40,9 @@ class AppContainer extends  Component{
 
     }
     renderTree(){
+        const {treeRootId} = this.props;
         return (
-            <Node id="root"></Node>
+            <Node id={treeRootId}></Node>
         );
     }
     render(){
@@ -90,6 +91,12 @@ function mapDispatchToAppProps(dispatch){
     return bindActionCreators({ setInspectMode,setSelectionExpanded,moveSelectionDown,moveSelectionUp,refresh,setHighlightOnSelection}, dispatch)
 }
 function mapStateToAppProps(state){
-    return {inspectMode:state.modes.inspectMode,highlightMode:state.modes.highlightMode,attrName:state.attrs.name,attrValue:state.attrs.value};
+    return {
+        inspectMode:state.modes.inspectMode,
+        highlightMode:state.modes.highlightMode,
+        attrName:state.attrs.name,
+        attrValue:state.attrs.value,
+        treeRootId:state.nodes.rootId
+    };
 }
 export default connect(mapStateToAppProps,mapDispatchToAppProps)(AppContainer);

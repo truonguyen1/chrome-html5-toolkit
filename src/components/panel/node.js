@@ -72,18 +72,19 @@ function mapDispatchToNodeProps(dispatch){
     let selectNode = actions.selectNode;
     return bindActionCreators({ setExpanded,selectNode}, dispatch)
 }
-function select(node,states){
+function select(id,node,states){
     var copy = Object.assign({},node);
+    copy.id = id;
     var {expandedIds=[],selectedId=''} = states;
-    copy.expanded = expandedIds.indexOf(node.id) !=-1;
-    copy.selected =selectedId!=null && selectedId.toString() ===node.id.toString();
+    copy.expanded = expandedIds.indexOf(id) !=-1;
+    copy.selected =selectedId!=null && selectedId.toString() ===id;
     return copy;
 }
 var ConnectedNode = connect((state,ownProps)=>{
     var tree = state.nodes;
     if(tree==null) return {};
     var node = tree.list[ownProps.id];
-    return select(node,tree);
+    return select(ownProps.id,node,tree);
 },mapDispatchToNodeProps)(Node);
 
 export default ConnectedNode;

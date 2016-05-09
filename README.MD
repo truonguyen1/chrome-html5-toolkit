@@ -26,9 +26,9 @@ A generic visualizer to visualize tree structure application data using tree UI 
 ##### Set Tree View Data (left section):
     {
         type: "SET_TREE_DATA",
-        data:{
-            'root':{id:<string>,name:<string>,'childrenIds':<Array>},
-            ...
+        rootId:<string>,
+        list:{
+            <id>:{childrenIds:<Array>}
         }
     }
 
@@ -37,12 +37,13 @@ Copy below code and execute in console.
     var event = new CustomEvent('messageToExtension', {
 		'detail':{
               'type':'SET_TREE_DATA',
-              'data':{
-                  'root':{id:'root','name':'Test Root','childrenIds':[1,2]},
-                  1:{'id':1,'name':"Child 1"},
-                  2:{'id':2,'name':"Child 2",childrenIds:[3]},
-                  3:{'id':3,'name':"Sub Child"}
-               }
+              'rootId':'root',
+              'list':{
+                    root:{'name':'Test Root','childrenIds':[1,2]},
+                    1:{'name':"Child 1"},
+                    2:'name':"Child 2",childrenIds:[3]},
+                    3:{'name':"Sub Child"}
+              }
         }
 	});
 	document.dispatchEvent(event);

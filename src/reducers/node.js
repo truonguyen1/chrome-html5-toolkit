@@ -56,8 +56,9 @@ function tree(listReducer){
                 return copy;
             }
             case actions.SET_TREE_DATA:{
-                var data = action.data;
-                copy.list = data;
+                var data = action;
+                copy.rootId = data.rootId;
+                copy.list = data.list;
                 return copy;
             }
 

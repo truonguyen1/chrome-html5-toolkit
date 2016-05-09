@@ -42,6 +42,7 @@ window.injectToolkit = function() {
 	geotoolkit.plot.Plot.prototype = oldProto;
 	geotoolkit.plot.Plot.contructor = geotoolkit.plot.Plot;
 	geotoolkit.plot.Plot.instances = [];
+	var ROOT_ID = 'root';
 	geotoolkit.plot.Plot.getJSON = function () {
 		var counter = 0;
 		var treeObj = {};
@@ -62,7 +63,7 @@ window.injectToolkit = function() {
 			}, 0);
 			rootIds.push(childJson['id']);
 		}
-		treeObj['root'] = {'id': 'root', 'name': 'Root', 'childrenIds': rootIds};
+		treeObj[ROOT_ID] = {'id': ROOT_ID, 'name': 'Root', 'childrenIds': rootIds};
 		return treeObj;
 	};
 	window.findNode = function (id) {
@@ -304,7 +305,8 @@ window.injectToolkit = function() {
 		var data = geotoolkit.plot.Plot.getJSON();
 		sendMessageToExtension({
 			'type': 'SET_TREE_DATA',
-			'data':data
+			'rootId':ROOT_ID,
+			'list':data
 		});
 	};
 
