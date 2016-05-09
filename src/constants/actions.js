@@ -42,19 +42,17 @@ export function handleMessage(message){
 }
 
 export const SET_EXPANDED = 'SET_EXPANDED';
-export function setExpanded(id,path,value){
+export function setExpanded(id,value){
     return {
         'type': SET_EXPANDED,
-        'path':path,
         'nodeId':id,
         'expanded':value
     }
 }
 export const SET_SELECTION_EXPANDED = 'SET_SELECTION_EXPANDED';
-export function setSelectionExpanded(path,value,firstChildId){
+export function setSelectionExpanded(value,firstChildId){
     return {
         'type': SET_SELECTION_EXPANDED,
-        'path':path,
         'firstChildId':firstChildId,
         'expanded':value
     }
@@ -71,10 +69,9 @@ export function addNode(parentId,node){
 
 
 export const SELECT_NODE = 'SELECT_NODE';
-export function selectNode(id,path,selection){
+export function selectNode(id,selection){
     return {
         'type': SELECT_NODE,
-        'path':path,
         'nodeId':id,
         'selection':selection
     }
@@ -123,37 +120,33 @@ export function setAttributes(attributes,name){
 }
 
 export const SET_ROOT = 'SET_ROOT';
-export function setRoot(path,rootId){
+export function setRoot(rootId){
     return {
         'type': SET_ROOT,
-        'path':path,
         'rooId':rootId
     }
 }
 export const HIGHLIGHT_NODE = 'HIGHLIGHT_NODE';
 
 export const MOVE_SELECTION_UP = 'MOVE_SELECTION_UP';
-export function moveSelectionUp(path){
+export function moveSelectionUp(){
     return {
-        'type': MOVE_SELECTION_UP,
-        'path':path
+        'type': MOVE_SELECTION_UP
     }
 }
 
 
 export const MOVE_SELECTION_DOWN = 'MOVE_SELECTION_DOWN';
-export function moveSelectionDown(path){
+export function moveSelectionDown(){
     return {
-        'type': MOVE_SELECTION_DOWN,
-        'path':path
+        'type': MOVE_SELECTION_DOWN
     }
 }
 
-export const SET_LIST_DATA = 'SET_LIST_DATA';
-export function setListData(data,path){
+export const SET_TREE_DATA = 'SET_TREE_DATA';
+export function setListData(data){
     return {
-        'type': SET_LIST_DATA,
-        'path':path,
+        'type': SET_TREE_DATA,
         'data':data
     }
 }
@@ -170,14 +163,5 @@ export function setHighlightOnSelection(bool){
     return {
         'type': SET_HIGHLIGHT_MODE,
         'value':bool
-    }
-}
-
-export const LOG_NODE = 'LOG_NODE';
-export function logNode(id,path){
-    return {
-        'type': LOG_NODE,
-        'id':id,
-        'path':path
     }
 }

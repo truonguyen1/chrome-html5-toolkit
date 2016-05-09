@@ -216,7 +216,6 @@ window.injectToolkit = function() {
 
 			sendMessageToExtension({
 				'type': 'SELECT_NODE',
-				'path': 'tree',
 				'nodeId':selected[ID_EXT_KEY],
 				'selection':true
 			});
@@ -266,25 +265,14 @@ window.injectToolkit = function() {
 					var mode = message['value'];
 					_SelectionTool.activate(mode);
 				}
-				case 'LOG_NODE':
-				{
-					var path = message['path'];
-					var id = message['id'];
-					var node = findNode(id);
-					if (node == null)return;
-					__LOGGED_NODE = node;
-					console.log('LOG_NODE', __LOGGED_NODE);
-					break;
-				}
 				case 'SELECT_NODE':
 				{
-					var path = message['path'];
-					if (path !== 'tree')return;
 					var nodeId = message['nodeId'];
 					if(nodeId===_lastSelectedID)return;
 					var selection = message['selection'];
 					var node = findNode(nodeId);
 					if (node == null)return;
+					$S0 = node;
 					_lastSelectedID = nodeId;
 					var pos = window.getNodeBounds(node);
 					if (pos != null) {
@@ -315,8 +303,7 @@ window.injectToolkit = function() {
 	window.updateTreeExtension = function(){
 		var data = geotoolkit.plot.Plot.getJSON();
 		sendMessageToExtension({
-			'type': 'SET_LIST_DATA',
-			'path': 'tree',
+			'type': 'SET_TREE_DATA',
 			'data':data
 		});
 	};

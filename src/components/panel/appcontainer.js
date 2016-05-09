@@ -15,21 +15,21 @@ class AppContainer extends  Component{
     constructor(props) {
         super(props)
     }
-    handleKeyDown(path,evt){
+    handleKeyDown(evt){
         const {id,setSelectionExpanded,moveSelectionDown,moveSelectionUp} = this.props;
         let code = evt.keyCode;
         switch(code){
             case 37://Left
-                setSelectionExpanded(path,false);
+                setSelectionExpanded(false);
                 break;
             case 38://Up
-                moveSelectionUp(path);
+                moveSelectionUp();
                 break;
             case 39://Right
-                setSelectionExpanded(path,true);
+                setSelectionExpanded(true);
                 break;
             case  40: //Down
-                moveSelectionDown(path);
+                moveSelectionDown();
                 break;
 
         }
@@ -41,7 +41,7 @@ class AppContainer extends  Component{
     }
     renderTree(){
         return (
-            <Node id="root" path="tree"></Node>
+            <Node id="root"></Node>
         );
     }
     render(){
@@ -59,13 +59,13 @@ class AppContainer extends  Component{
                 </div>
                 <div className="panel-body">
                     <div>
-                        <div className="panel-object-view" tabIndex="1" onKeyDown={this.handleKeyDown.bind(this,"tree")}>
+                        <div className="panel-object-view" tabIndex="1" onKeyDown={this.handleKeyDown.bind(this)}>
                             {this.renderTree()}
                         </div>
                         <div className="panel-spliter" onMouseDown={this.handleMouseDown} onMouseMove={this.handleMouseMove} onMouseUp={this.handleMouseUp}></div>
                         <div className="panel-attributes-view">
                             <div className="panel-attributes-header">Attributes</div>
-                            <div className="panel-attributes-body" tabIndex="2" onKeyDown={this.handleKeyDown.bind(this,"attrs")}>
+                            <div className="panel-attributes-body" tabIndex="2">
                                 <div>
                                     {this.renderAttributes()}
                                 </div>

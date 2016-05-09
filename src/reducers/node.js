@@ -26,10 +26,10 @@ function tree(listReducer){
         },
         rootId:'root'
     };
-    let reducer = function(state = _tree,action){
+    let reducer = function(state,action){
+        var copy = Object.assign({},_tree,state);
         switch(action.type){
             case actions.ADD_NODE:{
-                var copy =  Object.assign({}, state);
                 var a = {
                     type:'ADD_ITEM',
                     'id':action.id,
@@ -55,21 +55,17 @@ function tree(listReducer){
                 copy.list = list;
                 return copy;
             }
-            case actions.SET_LIST_DATA:{
+            case actions.SET_TREE_DATA:{
                 var data = action.data;
-                var copy =  Object.assign({}, state);
                 copy.list = data;
                 return copy;
             }
 
             case actions.SET_ROOT:{
-                var rootId = action.rootId;
-                var copy =  Object.assign({}, state);
-                copy.roodId = rootId;
                 return copy;
             }
             default:
-                return state;
+                return copy;
         }
 
     }
@@ -223,5 +219,4 @@ function treeStateReducer(tReducer){
     }
     return reducer;
 }
-
  export default treeStateReducer(treeReducer);

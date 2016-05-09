@@ -10,11 +10,11 @@ import { bindActionCreators } from 'redux'
 
 class Node extends  Component{
     renderExpandIcon(){
-        const {expanded=false,childrenIds=[],setExpanded,id,path} = this.props;
+        const {expanded=false,childrenIds=[],setExpanded,id} = this.props;
         if(childrenIds.length==0)return '';
         let iconClass = expanded?'glyphicon glyphicon-menu-down':'glyphicon glyphicon-menu-right';
         return  (
-            <a className="btn btn-link node-show-children-btn" onClick={()=>setExpanded(id,path,!expanded)}>
+            <a className="btn btn-link node-show-children-btn" onClick={()=>setExpanded(id,!expanded)}>
                 <span className={iconClass}></span>
             </a>
         )
@@ -23,13 +23,12 @@ class Node extends  Component{
 
     }
     renderChildrenNodes(){
-        const {childrenIds=[],expanded=false,path} = this.props;
+        const {childrenIds=[],expanded=false} = this.props;
         if(!expanded) return [];
         var arr = [];
 
         for(var i=0;i<childrenIds.length;i++){
             arr.push(<ConnectedNode
-                path = {path}
                 key={childrenIds[i]}
                 id={childrenIds[i]}></ConnectedNode>)
         }
@@ -37,7 +36,7 @@ class Node extends  Component{
     }
 
     render(){
-        const {name,selected=false,selectNode,id,path,logNode} = this.props;
+        const {name,selected=false,selectNode,id} = this.props;
         let headerClass = 'node-header';
         if(selected){
             headerClass +=' node-selected';
@@ -48,7 +47,7 @@ class Node extends  Component{
         }
         return (
             <div className="node">
-                <div className={headerClass} onClick={()=>selectNode(id,path,true)}>
+                <div className={headerClass} onClick={()=>selectNode(id,true)}>
                     <div className="node-show-children-action">
                         {this.renderExpandIcon()}
                     </div>
@@ -56,7 +55,6 @@ class Node extends  Component{
                         <span>{name}</span>
                     </div>
                     <div className={actions}>
-                        <button onClick={()=>logNode(id,path)} className="btn btn-link"><span className="glyphicon glyphicon-console"></span></button>
                     </div>
                 </div>
                 <div className="node-body">
@@ -72,18 +70,17 @@ Node.propTypes = {
 function mapDispatchToNodeProps(dispatch){
     let setExpanded = actions.setExpanded;
     let selectNode = actions.selectNode;
-    let logNode = actions.logNode;
-    return bindActionCreators({ setExpanded,selectNode,logNode }, dispatch)
+    return bindActionCreators({ setExpanded,selectNode}, dispatch)
 }
 function select(node,states){
     var copy = Object.assign({},node);
     var {expandedIds=[],selectedId=''} = states;
     copy.expanded = expandedIds.indexOf(node.id) !=-1;
-    copy.selected =selectedId.toString() ===node.id.toString();
+    copy.selected =selectedId!=null && selectedId.toString() ===node.id.toString();
     return copy;
 }
 var ConnectedNode = connect((state,ownProps)=>{
-    var tree = state.nodes[ownProps.path];
+    var tree = state.nodes;
     if(tree==null) return {};
     var node = tree.list[ownProps.id];
     return select(node,tree);
