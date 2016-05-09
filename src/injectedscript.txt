@@ -232,7 +232,7 @@ window.injectToolkit = function() {
 			var pos = window.getNodeBounds(selected);
 			if(pos==null)return;
 
-			sendMessageToContentScript({
+			sendMessageToExtension({
 				'type': 'HIGHLIGHT_NODE',
 				'node':pos
 			});
@@ -288,7 +288,7 @@ window.injectToolkit = function() {
 					_lastSelectedID = nodeId;
 					var pos = window.getNodeBounds(node);
 					if (pos != null) {
-						window.sendMessageToContentScript({
+						window.sendMessageToExtension({
 							'type': 'HIGHLIGHT_NODE',
 							'node': pos
 						});
@@ -323,12 +323,6 @@ window.injectToolkit = function() {
 
 	window.sendMessageToExtension = function(message){
 		var event = new CustomEvent('messageToExtension', {
-			'detail': message
-		});
-		document.dispatchEvent(event);
-	};
-	window.sendMessageToContentScript = function(message){
-		var event = new CustomEvent('messageToContentScript', {
 			'detail': message
 		});
 		document.dispatchEvent(event);

@@ -31,12 +31,11 @@ export default function contentScript(prevState =_default,action){
             var copy = Object.assign({},prevState);
             copy.node = action.node;
             return copy;
-        case actions.SEND_TO_EXTENSION:
-            chrome.runtime.sendMessage(action['message'], function() {
+        default:
+            if(action.source!='contentscript')return prevState;
+
+            chrome.runtime.sendMessage(action, function() {
             });
             return prevState;
-        default:
-            return prevState;
-
     }
 }
