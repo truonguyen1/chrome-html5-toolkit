@@ -24,28 +24,30 @@ window.getJSON = function () {
         rootIds.push(childJson['id']);
     }
 
-    var plot3ds = geotoolkit3d.Plot.getInstances();
-    function get3dNodes(node,result){
-        if(!node.getClassName)return;
-        var name = node.getClassName();
-        var id = 'node-' + (counter++);
-        node[ID_EXT_KEY] = id;
-        result[id] = {'id':id,'name':name};
-        var childrenIds = [];
-        for (var i=0;node.children && i<node.children.length;i++){
-            var child =node.children[i];
-            get3dNodes(child,result);
-            if(child[ID_EXT_KEY]!=null){
-                childrenIds.push(child[ID_EXT_KEY]);
+    if(window.geotoolkit3d!=null){
+        var plot3ds = geotoolkit3d.Plot.getInstances();
+        function get3dNodes(node,result){
+            if(!node.getClassName)return;
+            var name = node.getClassName();
+            var id = 'node-' + (counter++);
+            node[ID_EXT_KEY] = id;
+            result[id] = {'id':id,'name':name};
+            var childrenIds = [];
+            for (var i=0;node.children && i<node.children.length;i++){
+                var child =node.children[i];
+                get3dNodes(child,result);
+                if(child[ID_EXT_KEY]!=null){
+                    childrenIds.push(child[ID_EXT_KEY]);
+                }
             }
+            result[id]['childrenIds'] = childrenIds;
+         }
+         for (var i = 0; i <plot3ds.length; i++) {
+            var childNode = plot3ds[i].getRoot();
+            if (childNode == null)continue;
+            var childJson = get3dNodes(childNode,treeObj);
+            rootIds.push(childNode[ID_EXT_KEY]);
         }
-        result[id]['childrenIds'] = childrenIds;
-     }
-     for (var i = 0; i <plot3ds.length; i++) {
-        var childNode = plot3ds[i].getRoot();
-        if (childNode == null)continue;
-        var childJson = get3dNodes(childNode,treeObj);
-        rootIds.push(childNode[ID_EXT_KEY]);
     }
 
     treeObj[ROOT_ID] = {'id': ROOT_ID, 'name': 'Root', 'childrenIds': rootIds};
@@ -61,21 +63,23 @@ window.findNode = function (id) {
         }).selectFirst();
         if (found != null)return found;
     }
-     plots = geotoolkit3d.Plot.getInstances();
-    for (var i = 0; i < plots.length; i++) {
-        var root = plots[i].getRoot();
-        if (root == null)continue;
-        var found = geotoolkit3d.selection.from(root).where(function (node) {
-            return node[ID_EXT_KEY] == id
-        }).selectFirst();
-        if (found != null)return found;
+    if(window.geotoolkit3d!=null){
+         plots = geotoolkit3d.Plot.getInstances();
+        for (var i = 0; i < plots.length; i++) {
+            var root = plots[i].getRoot();
+            if (root == null)continue;
+            var found = geotoolkit3d.selection.from(root).where(function (node) {
+                return node[ID_EXT_KEY] == id
+            }).selectFirst();
+            if (found != null)return found;
+        }
     }
     return null;
 };
 window.getNodeBounds = function (node) {
     if (!node.getRoot || node.getRoot() == null) return null;
     var root = node.getRoot();
-    if(root instanceof geotoolkit3d.scene.Object3D)return null;
+    if(window.geotoolkit3d!=null && (root instanceof geotoolkit3d.scene.Object3D))return null;
     var plots = geotoolkit.plot.Plot.getInstances();
     var canvas;
     for (var i = 0; i < plots.length; i++) {
